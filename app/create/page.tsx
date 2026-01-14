@@ -56,7 +56,7 @@ export default function CreateExam() {
             router.push("/dashboard");
         } catch (e) {
             console.error(e);
-            setError("Wystąpił błąd podczas przesyłania pliku. Spróbuj ponownie.");
+            setError("ERROR: Wystąpił błąd podczas przesyłania pliku. Spróbuj ponownie.");
             setIsUploading(false);
         }
     };
@@ -64,25 +64,27 @@ export default function CreateExam() {
     return (
         <div className="max-w-3xl mx-auto px-6 py-20 min-h-screen">
             <div className="text-center mb-12">
-                <h1 className="text-4xl font-bold mb-4">Stwórz nowy plan</h1>
-                <p className="text-gray-400">Prześlij PDF z materiałami, a my zajmiemy się resztą.</p>
+                <h1 className="text-4xl font-bold mb-4 text-[#ff00ff]">&lt;NOWY_PLAN /&gt;</h1>
+                <p className="text-gray-500 font-mono text-sm">// Prześlij PDF z materiałami, a my zajmiemy się resztą.</p>
             </div>
 
             <div className="card-premium space-y-8">
                 <div>
-                    <label className="block text-sm font-medium text-gray-400 mb-2">Nazwa projektu</label>
+                    <label className="block text-sm font-medium text-[#ff00ff] mb-2 uppercase tracking-wider">
+                        &gt; nazwa_projektu
+                    </label>
                     <input
                         type="text"
                         value={title}
                         onChange={(e) => setTitle(e.target.value)}
                         placeholder="np. Analiza Matematyczna - Kolokwium 1"
-                        className="w-full bg-gray-900 border border-gray-800 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all"
+                        className="w-full px-4 py-3 rounded-none"
                     />
                 </div>
 
                 <div
                     {...getRootProps()}
-                    className={`border-2 border-dashed rounded-2xl p-12 text-center transition-all cursor-pointer ${isDragActive ? 'border-indigo-500 bg-indigo-500/5' : 'border-gray-800 hover:border-gray-700'
+                    className={`border-2 border-dashed p-12 text-center transition-all cursor-pointer ${isDragActive ? 'border-[#ff00ff] bg-[#ff00ff]/5 shadow-[0_0_30px_rgba(255,0,255,0.2)]' : 'border-[#ff00ff]/30 hover:border-[#ff00ff]/60'
                         }`}
                 >
                     <input {...getInputProps()} />
@@ -95,11 +97,11 @@ export default function CreateExam() {
                                 exit={{ opacity: 0 }}
                                 className="flex flex-col items-center"
                             >
-                                <div className="p-4 bg-gray-800 rounded-full mb-4">
-                                    <Upload className="w-8 h-8 text-indigo-400" />
+                                <div className="p-4 border border-[#ff00ff]/30 mb-4">
+                                    <Upload className="w-8 h-8 text-[#ff00ff]" />
                                 </div>
-                                <p className="text-lg font-medium mb-1">Przeciągnij i upuść plik tutaj</p>
-                                <p className="text-sm text-gray-500 text-center">Obsługujemy tylko pliki PDF do 50MB</p>
+                                <p className="text-lg font-medium mb-1">UPUŚĆ_PLIK</p>
+                                <p className="text-sm text-gray-600 font-mono">// Obsługujemy tylko pliki PDF do 50MB</p>
                             </motion.div>
                         ) : (
                             <motion.div
@@ -109,27 +111,27 @@ export default function CreateExam() {
                                 exit={{ opacity: 0, scale: 0.9 }}
                                 className="flex flex-col items-center"
                             >
-                                <div className="p-4 bg-indigo-500/10 rounded-full mb-4 relative">
-                                    <File className="w-8 h-8 text-indigo-500" />
+                                <div className="p-4 border border-[#ff00ff] bg-[#ff00ff]/10 mb-4 relative">
+                                    <File className="w-8 h-8 text-[#ff00ff]" />
                                     <button
                                         onClick={(e) => {
                                             e.stopPropagation();
                                             setFile(null);
                                         }}
-                                        className="absolute -top-1 -right-1 p-1 bg-gray-800 rounded-full hover:bg-gray-700 transition-colors"
+                                        className="absolute -top-2 -right-2 p-1 bg-black border border-[#ff00ff] hover:bg-[#ff00ff] hover:text-black transition-colors"
                                     >
                                         <X className="w-3 h-3" />
                                     </button>
                                 </div>
-                                <p className="text-lg font-bold mb-1 truncate max-w-xs">{file.name}</p>
-                                <p className="text-sm text-gray-500">{(file.size / 1024 / 1024).toFixed(2)} MB</p>
+                                <p className="text-lg font-bold mb-1 truncate max-w-xs text-[#ff00ff]">{file.name}</p>
+                                <p className="text-sm text-gray-500 font-mono">[{(file.size / 1024 / 1024).toFixed(2)} MB]</p>
                             </motion.div>
                         )}
                     </AnimatePresence>
                 </div>
 
                 {error && (
-                    <div className="flex items-center gap-2 p-4 bg-red-500/10 border border-red-500/20 text-red-500 rounded-xl text-sm">
+                    <div className="flex items-center gap-2 p-4 border border-red-500 text-red-500 text-sm font-mono">
                         <AlertCircle className="w-4 h-4" />
                         {error}
                     </div>
@@ -138,17 +140,17 @@ export default function CreateExam() {
                 <button
                     onClick={handleUpload}
                     disabled={!file || !title || isUploading}
-                    className="btn-premium w-full py-4 text-lg disabled:opacity-50 disabled:cursor-not-allowed group"
+                    className="btn-premium w-full py-4 text-lg group"
                 >
                     {isUploading ? (
                         <>
                             <Loader2 className="w-5 h-5 mr-2 animate-spin" />
-                            Przesyłanie...
+                            PRZESYŁANIE...
                         </>
                     ) : (
                         <>
                             <Sparkles className="w-5 h-5 mr-2 group-hover:animate-pulse" />
-                            Generuj Plan z AI
+                            GENERUJ_PLAN_Z_AI
                         </>
                     )}
                 </button>

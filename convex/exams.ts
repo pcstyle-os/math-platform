@@ -3,7 +3,7 @@ import { v } from "convex/values";
 import { mutation, query, action } from "./_generated/server";
 import { api, internal } from "./_generated/api";
 import { authKit } from "./auth";
-import { GoogleGenAI } from "@google/genai";
+import { GoogleGenerativeAI } from "@google/generative-ai";
 
 // --- Mutations & Queries ---
 
@@ -75,18 +75,19 @@ export const generateUploadUrl = mutation(async (ctx) => {
 export const generateExam = action({
     args: { examId: v.id("exams"), storageId: v.id("_storage") },
     handler: async (ctx, args) => {
-        const exam = await ctx.runQuery(api.exams.getExam, { id: args.id }); // Note: API might be slightly different depending on _generated
+        const exam = await ctx.runQuery(api.exams.getExam, { id: args.examId });
         // Re-check auth or just proceed since it's an internal/action call triggered by user
 
         try {
-            const pdfBuffer = await ctx.storage.get(args.storageId);
-            if (!pdfBuffer) throw new Error("PDF not found in storage");
+            const pdfBlob = await ctx.storage.get(args.storageId);
+            if (!pdfBlob) throw new Error("PDF not found in storage");
+            const pdfBuffer = await pdfBlob.arrayBuffer();
 
             const apiKey = process.env.GEMINI_API_KEY;
             if (!apiKey) throw new Error("GEMINI_API_KEY not set");
 
-            const genAI = new GoogleGenAI(apiKey);
-            const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" }); // Use 1.5 flash for speed/cost
+            const genAI = new GoogleGenerativeAI(apiKey);
+            const model = genAI.getGenerativeModel({ model: "gemini-3-flash-preview" });
 
             const result = await model.generateContent([
                 {
