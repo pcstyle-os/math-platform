@@ -1,5 +1,5 @@
 
-const { GoogleGenerativeAI } = require("@google/generative-ai");
+const { GoogleGenAI, Type } = require("@google/genai");
 const fs = require("fs");
 const path = require("path");
 const dotenv = require("dotenv");
@@ -7,68 +7,128 @@ const dotenv = require("dotenv");
 // Load local env vars
 dotenv.config({ path: path.join(__dirname, "../.env.local") });
 
+const createLearningPathTool = {
+    name: 'createLearningPath',
+    description: 'Creates a structured 3-phase math learning path (Theory, Guided Practice, Exam) based on provided materials.',
+    parameters: {
+        type: Type.OBJECT,
+        properties: {
+            examTitle: {
+                type: Type.STRING,
+                description: 'A concise Polish title for this learning material.',
+            },
+            phase1_theory: {
+                type: Type.ARRAY,
+                description: 'Phase 1: Review of key concepts, formulas, and definitions found in the source material.',
+                items: {
+                    type: Type.OBJECT,
+                    properties: {
+                        topic: { type: Type.STRING, description: 'Name of the concept' },
+                        content: { type: Type.STRING, description: 'Detailed explanation including formulas.' },
+                    },
+                    required: ['topic', 'content'],
+                },
+            },
+            phase2_guided: {
+                type: Type.ARRAY,
+                description: 'Phase 2: Example exercises with step-by-step walkthroughs.',
+                items: {
+                    type: Type.OBJECT,
+                    properties: {
+                        question: { type: Type.STRING, description: 'The math problem' },
+                        steps: {
+                            type: Type.ARRAY,
+                            items: { type: Type.STRING },
+                            description: 'List of logical steps to solve the problem',
+                        },
+                        solution: { type: Type.STRING, description: 'The final answer' },
+                        tips: { type: Type.STRING, description: 'Helpful hints or common pitfalls' },
+                    },
+                    required: ['question', 'steps', 'solution'],
+                },
+            },
+            phase3_exam: {
+                type: Type.ARRAY,
+                description: 'Phase 3: A test for the user to solve independently.',
+                items: {
+                    type: Type.OBJECT,
+                    properties: {
+                        question: { type: Type.STRING },
+                        answer: { type: Type.STRING, description: 'The correct answer for grading' },
+                    },
+                    required: ['question', 'answer'],
+                },
+            },
+        },
+        required: ['examTitle', 'phase1_theory', 'phase2_guided', 'phase3_exam'],
+    },
+};
+
 async function testGeneration() {
     const apiKey = process.env.GEMINI_API_KEY;
     if (!apiKey) {
-        console.error("❌ BŁĄD: GEMINI_API_KEY nie został znaleziony w .env.local");
+        console.error("BLAD: GEMINI_API_KEY nie zostal znaleziony w .env.local");
         process.exit(1);
     }
 
     const pdfPath = path.join(__dirname, "../example/example.pdf");
     if (!fs.existsSync(pdfPath)) {
-        console.error(`❌ BŁĄD: Nie znaleziono pliku @[example/example.pdf] pod ścieżką: ${pdfPath}`);
+        console.error(`BLAD: Nie znaleziono pliku @[example/example.pdf] pod sciezką: ${pdfPath}`);
         process.exit(1);
     }
 
-    console.log("📂 Wczytywanie pliku PDF...");
+    console.log("Wczytywanie pliku PDF...");
     const pdfBuffer = fs.readFileSync(pdfPath);
     const base64 = pdfBuffer.toString("base64");
 
-    const genAI = new GoogleGenerativeAI(apiKey);
-    // Using the latest available thinking model
-    const model = genAI.getGenerativeModel({ model: "gemini-3-flash-preview" });
+    const ai = new GoogleGenAI({ apiKey });
 
-    console.log("🧠 Uruchamianie Gemini 2.0 Flash Thinking...");
+    console.log("Uruchamianie Gemini 3 Flash z Tool Calling...");
 
     try {
-        const result = await model.generateContent([
-            {
-                inlineData: {
-                    data: base64,
-                    mimeType: "application/pdf",
-                },
+        const response = await ai.models.generateContent({
+            model: 'gemini-3-flash-preview',
+            contents: [
+                {
+                    parts: [
+                        {
+                            inlineData: {
+                                data: base64,
+                                mimeType: "application/pdf",
+                            },
+                        },
+                        {
+                            text: `Przeanalizuj ten plik PDF i stwórz SZCZEGÓŁOWY plan nauki matematyki po polsku. Bądź bardzo obszerny. Użyj narzędzia 'createLearningPath' aby zwrócić dane.`,
+                        }
+                    ]
+                }
+            ],
+            config: {
+                tools: [{ functionDeclarations: [createLearningPathTool] }],
+                thinkingConfig: { thinkingBudget: 4096 },
             },
-            `Przeanalizuj ten plik PDF i stwórz SZCZEGÓŁOWY plan nauki matematyki po polsku. Zwróć JSON zgodny z tą strukturą: { "examTitle": "Tytuł", "phase1_theory": [{"topic": "...", "content": "..."}], "phase2_guided": [{"question": "...", "steps": ["..."], "solution": "...", "tips": "..."}], "phase3_exam": [{"question": "...", "answer": "..."}] }. Zwróć TYLKO czysty obiekt JSON bez znaczników markdown ani tekstu przed/po.`,
-        ]);
+        });
 
-        const text = result.response.text();
-        console.log("\n--- ODPOWIEDŹ AI ---");
-        console.log(text);
-        console.log("-------------------\n");
-
-        const jsonMatch = text.match(/\{[\s\S]*\}/);
-        if (jsonMatch) {
-            let jsonStr = jsonMatch[0];
-            // Fix potential syntax issues if the model provided a non-strict JSON
-            try {
-                const data = JSON.parse(jsonStr.replace(/^```json\n?/, '').replace(/\n?```$/, ''));
-                console.log("✅ SUKCES: Pomyślnie wygenerowano i sparsowano dane JSON.");
-                console.log(`📌 Tytuł: ${data.examTitle}`);
-                console.log(`📚 Teoria: ${data.phase1_theory.length} tematów`);
-                console.log(`📝 Zadania: ${data.phase2_guided.length} ćwiczeń`);
-                console.log(`🏆 Egzamin: ${data.phase3_exam.length} pytań`);
+        const functionCalls = response.functionCalls;
+        if (functionCalls && functionCalls.length > 0) {
+            const call = functionCalls[0];
+            if (call.name === 'createLearningPath') {
+                const data = call.args;
+                console.log("SUKCES: Pomyslnie wygenerowano dane przez Tool Calling.");
+                console.log(`Tytul: ${data.examTitle}`);
+                console.log(`Teoria: ${data.phase1_theory.length} tematów`);
+                console.log(`Zadania: ${data.phase2_guided.length} ćwiczeń`);
+                console.log(`Egzamin: ${data.phase3_exam.length} pytań`);
 
                 fs.writeFileSync(path.join(__dirname, "last_test_result.json"), JSON.stringify(data, null, 2));
-                console.log(`💾 Wynik zapisany do scripts/last_test_result.json`);
-            } catch (e) {
-                console.error("❌ BŁĄD PARSOWANIA JSON: Model zwrócił niepoprawny format.");
-                console.error(e.message);
-                console.log("Próba zapisu surowego tekstu do debug_raw.txt...");
-                fs.writeFileSync(path.join(__dirname, "debug_raw.txt"), text);
+                console.log(`Wynik zapisany do scripts/last_test_result.json`);
+                return;
             }
-        } else {
-            console.error("❌ BŁĄD: Nie udało się wyodrębnić JSON z odpowiedzi AI.");
         }
+
+        console.error("BLAD: Model nie wywolal oczekiwanej funkcji.");
+        console.log("Surowa odpowiedź:", JSON.stringify(response, null, 2));
+
     } catch (err) {
         console.error("❌ BŁĄD PODCZAS GENERACJI:");
         console.error(err);
@@ -76,3 +136,4 @@ async function testGeneration() {
 }
 
 testGeneration();
+

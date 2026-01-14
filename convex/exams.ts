@@ -3,7 +3,66 @@ import { v } from "convex/values";
 import { mutation, query, action } from "./_generated/server";
 import { api } from "./_generated/api";
 import { authKit } from "./auth";
-import { GoogleGenerativeAI } from "@google/generative-ai";
+import { GoogleGenAI, Type } from "@google/genai";
+
+// --- Tool Definition ---
+
+const createLearningPathTool = {
+    name: 'createLearningPath',
+    description: 'Creates a structured 3-phase math learning path (Theory, Guided Practice, Exam) based on provided materials.',
+    parameters: {
+        type: Type.OBJECT,
+        properties: {
+            examTitle: {
+                type: Type.STRING,
+                description: 'A concise Polish title for this learning material.',
+            },
+            phase1_theory: {
+                type: Type.ARRAY,
+                description: 'Phase 1: Review of key concepts, formulas, and definitions found in the source material.',
+                items: {
+                    type: Type.OBJECT,
+                    properties: {
+                        topic: { type: Type.STRING, description: 'Name of the concept' },
+                        content: { type: Type.STRING, description: 'Detailed explanation including formulas.' },
+                    },
+                    required: ['topic', 'content'],
+                },
+            },
+            phase2_guided: {
+                type: Type.ARRAY,
+                description: 'Phase 2: Example exercises with step-by-step walkthroughs.',
+                items: {
+                    type: Type.OBJECT,
+                    properties: {
+                        question: { type: Type.STRING, description: 'The math problem' },
+                        steps: {
+                            type: Type.ARRAY,
+                            items: { type: Type.STRING },
+                            description: 'List of logical steps to solve the problem',
+                        },
+                        solution: { type: Type.STRING, description: 'The final answer' },
+                        tips: { type: Type.STRING, description: 'Helpful hints or common pitfalls' },
+                    },
+                    required: ['question', 'steps', 'solution'],
+                },
+            },
+            phase3_exam: {
+                type: Type.ARRAY,
+                description: 'Phase 3: A test for the user to solve independently.',
+                items: {
+                    type: Type.OBJECT,
+                    properties: {
+                        question: { type: Type.STRING },
+                        answer: { type: Type.STRING, description: 'The correct answer for grading' },
+                    },
+                    required: ['question', 'answer'],
+                },
+            },
+        },
+        required: ['examTitle', 'phase1_theory', 'phase2_guided', 'phase3_exam'],
+    },
+};
 
 // --- Mutations & Queries ---
 
@@ -82,7 +141,6 @@ export const generateExam = action({
                 const pdfBlob = await ctx.storage.get(storageId);
                 if (!pdfBlob) throw new Error(`PDF not found in storage: ${storageId}`);
                 const pdfBuffer = await pdfBlob.arrayBuffer();
-                // Avoid using Buffer if possible (might be undefined in some runtimes)
                 const base64 = btoa(
                     new Uint8Array(pdfBuffer)
                         .reduce((data, byte) => data + String.fromCharCode(byte), '')
@@ -98,35 +156,44 @@ export const generateExam = action({
             const apiKey = process.env.GEMINI_API_KEY;
             if (!apiKey) throw new Error("GEMINI_API_KEY not set");
 
-            const genAI = new GoogleGenerativeAI(apiKey);
-            const model = genAI.getGenerativeModel({ model: "gemini-3-flash-preview" });
-
+            const ai = new GoogleGenAI({ apiKey });
+            
             // Build prompt with all PDFs
-            const result = await model.generateContent([
-                ...pdfParts,
-                `Przeanalizuj te pliki PDF (${pdfParts.length} plik${pdfParts.length > 1 ? 'ów' : ''}) i stwórz SZCZEGÓŁOWY plan nauki matematyki po polsku. Zwróć JSON zgodny z tą strukturą: { examTitle: string, phase1_theory: [{topic, content}], phase2_guided: [{question, steps: [], solution, tips}], phase3_exam: [{question, answer}] }. Bądź bardzo obszerny i połącz informacje ze wszystkich plików.`,
-            ]);
+            const response = await ai.models.generateContent({
+                model: 'gemini-3-flash-preview',
+                contents: [
+                    ...pdfParts,
+                    {
+                        role: 'user',
+                        parts: [
+                            {
+                                text: `Przeanalizuj te pliki PDF (${pdfParts.length} plik${pdfParts.length > 1 ? 'ów' : ''}) i stwórz SZCZEGÓŁOWY plan nauki matematyki po polsku. Bądź bardzo obszerny i połącz informacje ze wszystkich plików. Użyj narzędzia 'createLearningPath' aby zwrócić dane.`,
+                            },
+                        ],
+                    },
+                ],
+                config: {
+                    tools: [{ functionDeclarations: [createLearningPathTool] }],
+                    thinkingConfig: { thinkingBudget: 4096 },
+                },
+            });
 
-            const text = result.response.text();
-            // Thinking models often wrap the JSON at the very end or inside markdown blocks
-            const jsonMatch = text.match(/\{[\s\S]*\}/);
-            if (!jsonMatch) throw new Error("Nie znaleziono poprawnego formatu JSON w odpowiedzi AI.");
-
-            let data;
-            try {
-                // Remove potential markdown wrappers if they exist within the match
-                const cleanedJson = jsonMatch[0].replace(/^```json\n?/, '').replace(/\n?```$/, '');
-                data = JSON.parse(cleanedJson);
-            } catch (parseError) {
-                console.error("[AI] Błąd parsowania JSON:", parseError);
-                throw new Error("Błąd struktury JSON wygenerowanej przez AI.");
+            const functionCalls = response.functionCalls;
+            if (functionCalls && functionCalls.length > 0) {
+                const call = functionCalls[0];
+                if (call.name === 'createLearningPath') {
+                    const data = call.args;
+                    
+                    await ctx.runMutation(api.exams.updateExamStatus, {
+                        id: args.examId,
+                        status: "ready",
+                        data: data,
+                    });
+                    return;
+                }
             }
 
-            await ctx.runMutation(api.exams.updateExamStatus, {
-                id: args.examId,
-                status: "ready",
-                data: data,
-            });
+            throw new Error("Model nie wywołał oczekiwanej funkcji createLearningPath.");
 
         } catch (e) {
             console.error(e);
@@ -138,3 +205,4 @@ export const generateExam = action({
         }
     },
 });
+

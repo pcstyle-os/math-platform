@@ -1,72 +1,87 @@
 {
-  "examTitle": "Kolokwium II - Analiza Matematyczna (Zestaw Przykładowy)",
+  "phase3_exam": [
+    {
+      "answer": "Nie istnieje, ponieważ pochodne jednostronne są różne: f'_+(0) = 0, f'_-(0) = 0, ale funkcja musi być ciągła (tu jest ciągła f(0)=1), jednak obliczając z definicji: granica lewostronna ilorazu to 0, prawostronna to 0. Sprawdźmy: f'_+(0) = [x/(sqrt(x^2+1))] w 0 = 0. f'_-(0) = [2x+3x^2] w 0 = 0. Pochodna f'(0) = 0.",
+      "question": "Oblicz f'(0) dla funkcji: f(x) = sqrt(x^2+1) dla x >= 0 oraz f(x) = x^2 + x^3 dla x < 0."
+    },
+    {
+      "answer": "y = -0.5x + 1.5",
+      "question": "Wyznacz równanie stycznej do f(x) = x / (x+1) w punkcie x = 1."
+    },
+    {
+      "answer": "1/2",
+      "question": "Oblicz granicę: lim_{x \\to 0} (e^x - 1 - x) / x^2"
+    },
+    {
+      "question": "Dla funkcji f(x) = x^3 - 3x wyznacz przedział, w którym jest ona jednocześnie rosnąca i wypukła.",
+      "answer": "Dziedzina R. Rosnąca dla x w (-inf, -1) oraz (1, inf). Wypukła dla x w (0, inf). Wspólna część (rosnąca i wypukła): x w (1, inf)."
+    },
+    {
+      "answer": "x=2 (pionowa), y=x+2 (ukośna)",
+      "question": "Wyznacz wszystkie asymptoty funkcji f(x) = x^2 / (x-2)."
+    }
+  ],
   "phase1_theory": [
     {
-      "topic": "Pochodna funkcji w punkcie i pochodne jednostronne",
-      "content": "Definicja pochodnej jako granicy ilorazu różnicowego. W przypadku funkcji zadanych klamrą, aby pochodna w punkcie sklejenia istniała, funkcja musi być w tym punkcie ciągła, a pochodne lewostronna i prawostronna muszą być sobie równe."
+      "content": "Pochodna funkcji w punkcie $x_0$ to granica ilorazu różniczkowego. Dla funkcji zadanych wzorami kawałkami, aby pochodna $f'(x_0)$ istniała, pochodne jednostronne muszą być sobie równe: $f'_-(x_0) = f'_+(x_0)$. Wzór na pochodną z definicji: $f'(x_0) = \\lim_{h \\to 0} \\frac{f(x_0+h) - f(x_0)}{h}$.",
+      "topic": "Pochodne jednostronne i istnienie pochodnej"
     },
     {
-      "topic": "Interpretacja geometryczna pochodnej - Styczna",
-      "content": "Równanie stycznej do wykresu funkcji f w punkcie (x0, f(x0)) dane jest wzorem: y - f(x0) = f'(x0)(x - x0). Wymaga obliczenia wartości funkcji oraz jej pochodnej w danym punkcie."
+      "topic": "Równanie stycznej do wykresu funkcji",
+      "content": "Równanie stycznej do wykresu funkcji $f$ w punkcie $P(x_0, f(x_0))$ dane jest wzorem: $y - f(x_0) = f'(x_0)(x - x_0)$. Wymaga ono obliczenia wartości funkcji oraz jej pochodnej w danym punkcie."
     },
     {
-      "topic": "Reguła de l’Hospitala",
-      "content": "Stosowana do obliczania granic wyrażeń nieoznaczonych typu [0/0] lub [inf/inf]. Polega na obliczeniu granicy ilorazu pochodnych licznika i mianownika: lim f(x)/g(x) = lim f'(x)/g'(x)."
+      "content": "Jeśli granica funkcji ma postać nieoznaczoną $\\frac{0}{0}$ lub $\\frac{\\infty}{\\infty}$, a funkcje w liczniku i mianowniku są różniczkowalne, to: $\\lim_{x \\to x_0} \\frac{f(x)}{g(x)} = \\lim_{x \\to x_0} \\frac{f'(x)}{g'(x)}$, o ile ta druga granica istnieje.",
+      "topic": "Reguła de l’Hospitala"
     },
     {
-      "topic": "Różniczkowanie funkcji złożonych",
-      "content": "Zastosowanie wzoru na pochodną funkcji złożonej (chain rule): [f(g(x))]' = f'(g(x)) * g'(x). Ważne przy funkcjach typu e^u(x) oraz arctan(u(x))."
+      "content": "1. Asymptota pionowa: $x=a$, gdy $\\lim_{x \\to a^{\\pm}} f(x) = \\pm\\infty$ (szukamy w punktach wykluczonych z dziedziny). \n2. Asymptota ukośna: $y = ax + b$, gdzie $a = \\lim_{x \\to \\pm\\infty} \\frac{f(x)}{x}$ oraz $b = \\lim_{x \\to \\pm\\infty} (f(x) - ax)$. Jeśli $a=0$, mamy asymptotę poziomą.",
+      "topic": "Asymptoty funkcji"
     },
     {
-      "topic": "Badanie przebiegu zmienności funkcji",
-      "content": "Wyznaczanie dziedziny (mianownik różny od zera, argument logarytmu dodatni). Asymptoty: pionowe (w punktach wyrzuconych z dziedziny), poziome i ukośne (granice w nieskończoności). Monotoniczność i ekstrema (badanie znaku pierwszej pochodnej). Wypukłość i punkty przegięcia (badanie znaku drugiej pochodnej)."
+      "content": "1. Monotoniczność: Jeśli $f'(x) > 0$ na przedziale, funkcja jest rosnąca. Jeśli $f'(x) < 0$, funkcja jest malejąca.\n2. Ekstrema: Punkt $x_0$ jest podejrzany o ekstremum, gdy $f'(x_0) = 0$. Jeśli pochodna zmienia znak w tym punkcie, mamy ekstremum (z $+$ na $-$ maksimum, z $-$ na $+$ minimum).",
+      "topic": "Monotoniczność i ekstrema lokalne"
+    },
+    {
+      "content": "1. Wypukłość: Funkcja jest wypukła ($\\cup$), gdy $f''(x) > 0$ na danym przedziale.\n2. Wklęsłość: Funkcja jest wklęsła ($\\cap$), gdy $f''(x) < 0$ na danym przedziale.\n3. Punkty przegięcia: Punkty, w których $f''(x) = 0$ i następuje zmiana znaku drugiej pochodnej.",
+      "topic": "Wypukłość i punkty przegięcia"
     }
   ],
   "phase2_guided": [
     {
-      "question": "Zadanie 1: Oblicz pochodną f'(0) dla funkcji f(x) danej klamrą.",
+      "question": "Wyznacz równanie stycznej do $f(x) = \\frac{x^2}{x-2}$ w punkcie $x_0 = 1$.",
+      "solution": "y = -3x + 2",
+      "tips": "Pamiętaj o wzorze na pochodną ilorazu: $(u/v)' = (u'v - uv')/v^2$.",
       "steps": [
-        "Sprawdź ciągłość w x=0: lim_{x->0+} f(x) = sqrt(0+1)=1, lim_{x->0-} f(x) = 0^2+0^3=0. Granice są różne.",
-        "Stwierdź brak ciągłości: Ponieważ funkcja nie jest ciągła w punkcie x=0, pochodna f'(0) nie istnieje."
-      ],
-      "solution": "Pochodna f'(0) nie istnieje, ponieważ funkcja f nie jest ciągła w punkcie x=0.",
-      "tips": "Zawsze zaczynaj od sprawdzenia ciągłości. Jeśli funkcja jest nieciągła, pochodna nie może istnieć."
+        "Oblicz wartość funkcji w punkcie: $f(1) = \\frac{1^2}{1-2} = -1$. Punkt to $(1, -1)$.",
+        "Oblicz pochodną funkcji: $f'(x) = \\frac{2x(x-2) - x^2 \\cdot 1}{(x-2)^2} = \\frac{2x^2 - 4x - x^2}{(x-2)^2} = \\frac{x^2 - 4x}{(x-2)^2}$.",
+        "Oblicz wartość pochodnej w punkcie: $f'(1) = \\frac{1^2 - 4(1)}{(1-2)^2} = \\frac{-3}{1} = -3$.",
+        "Podstaw do wzoru na styczną: $y - (-1) = -3(x - 1) \\Rightarrow y + 1 = -3x + 3 \\Rightarrow y = -3x + 2$."
+      ]
     },
     {
-      "question": "Zadanie 3: Oblicz granicę lim_{x->0} (cos x - 1) / (sin x - x) stosując regułę de l’Hospitala.",
+      "tips": "Jeśli po pierwszym użyciu reguły nadal masz symbol nieoznaczony, możesz stosować ją wielokrotnie, o ile spełnione są założenia.",
       "steps": [
-        "Sprawdź symbol nieoznaczony: (cos 0 - 1) / (sin 0 - 0) = (1-1)/0 = [0/0].",
-        "Zastosuj regułę de l’Hospitala (pierwszy raz): lim_{x->0} (-sin x) / (cos x - 1). Ponownie otrzymujemy [0/0].",
-        "Zastosuj regułę de l’Hospitala (drugi raz): lim_{x->0} (-cos x) / (-sin x). To daje [-1/0].",
-        "Zbadaj granice jednostronne: dla x->0+ wynik to +inf, dla x->0- wynik to -inf."
+        "Sprawdź symbol nieoznaczony: $\\frac{\\cos 0 - 1}{\\sin 0 - 0} = \\frac{0}{0}$. Stosujemy regułę de l'Hospitala.",
+        "Oblicz pochodne licznika i mianownika: $(\\cos x - 1)' = -\\sin x$ oraz $(\\sin x - x)' = \\cos x - 1$.",
+        "Oblicz nową granicę: $\\lim_{x \\to 0} \\frac{-\\sin x}{\\cos x - 1}$. Ponownie mamy $\\frac{0}{0}$. Stosujemy regułę drugi raz.",
+        "Oblicz pochodne: $(-\\sin x)' = -\\cos x$ oraz $(\\cos x - 1)' = -\\sin x$.",
+        "Oblicz granicę: $\\lim_{x \\to 0} \\frac{-\\cos x}{-\\sin x} = \\lim_{x \\to 0} \\text{ctg } x$. Granica dąży do $\\pm\\infty$ zależnie od strony."
       ],
-      "solution": "Granica nie istnieje (granice jednostronne są różne: -inf i +inf). Uwaga: Przy ponownym różniczkowaniu mianownika otrzymujemy 0, co sugeruje asymptotyczne zachowanie.",
-      "tips": "Jeśli po de l'Hospitalu nadal masz [0/0], stosuj regułę do skutku, o ile spełnione są założenia."
+      "question": "Oblicz granicę $\\lim_{x \\to 0} \\frac{\\cos x - 1}{\\sin x - x}$ stosując regułę de l'Hospitala.",
+      "solution": "\\infty (granica nie istnieje w sensie właściwym, dąży do nieskończoności)"
     },
     {
-      "question": "Zadanie 6: Wyznacz dziedzinę, monotoniczność i ekstrema funkcji f(x) = ln(x) / x^2.",
+      "solution": "Rosnąca dla $x \\in (0, \\sqrt{e})$, malejąca dla $x \\in (\\sqrt{e}, \\infty)$.",
+      "tips": "Zawsze zaczynaj od wyznaczenia dziedziny, szczególnie przy funkcjach z logarytmem!",
+      "question": "Wyznacz przedziały monotoniczności funkcji $f(x) = \\frac{\\ln x}{x^2}$.",
       "steps": [
-        "Dziedzina: x > 0 (ze względu na logarytm) oraz x != 0. Zatem D = (0, +inf).",
-        "Oblicz pochodną: f'(x) = [ (1/x)*x^2 - ln(x)*2x ] / (x^2)^2 = [ x - 2x*ln(x) ] / x^4 = (1 - 2*ln(x)) / x^3.",
-        "Punkty stacjonarne: f'(x) = 0 => 1 - 2*ln(x) = 0 => ln(x) = 1/2 => x = sqrt(e).",
-        "Znak pochodnej: f'(x) > 0 dla x < sqrt(e) (funkcja rośnie), f'(x) < 0 dla x > sqrt(e) (funkcja maleje)."
-      ],
-      "solution": "Dziedzina: (0, +inf). Funkcja rośnie w (0, sqrt(e)], maleje w [sqrt(e), +inf). Maksimum lokalne w punkcie x = sqrt(e).",
-      "tips": "Pamiętaj o dziedzinie przy ustalaniu przedziałów monotoniczności."
+        "Wyznacz dziedzinę: $x > 0$ oraz $x \\neq 0$, więc $D = (0, \\infty)$.",
+        "Oblicz pochodną: $f'(x) = \\frac{\\frac{1}{x} \\cdot x^2 - \\ln x \\cdot 2x}{(x^2)^2} = \\frac{x - 2x \\ln x}{x^4} = \\frac{1 - 2 \\ln x}{x^3}$.",
+        "Przyrównaj pochodną do zera: $1 - 2 \\ln x = 0 \\Rightarrow \\ln x = 1/2 \\Rightarrow x = \\sqrt{e}$.",
+        "Zbadaj znak pochodnej: Mianownik $x^3$ dla $x>0$ jest zawsze dodatni. Znak zależy od licznika $1 - 2 \\ln x$. $f'(x) > 0$ gdy $1 > 2 \\ln x \\Rightarrow x < \\sqrt{e}$."
+      ]
     }
   ],
-  "phase3_exam": [
-    {
-      "question": "Wyznacz równanie stycznej do f(x) = x^2 / (x - 2) w punkcie x = 1.",
-      "answer": "f(1) = -1. f'(x) = (x^2 - 4x) / (x-2)^2. f'(1) = (1-4)/(1-2)^2 = -3. Równanie: y + 1 = -3(x - 1) => y = -3x + 2."
-    },
-    {
-      "question": "Oblicz pochodną f(x) = e^{arctan x} + arctan(e^x).",
-      "answer": "f'(x) = e^{arctan x} * (1 / (1 + x^2)) + (1 / (1 + (e^x)^2)) * e^x = [e^{arctan x} / (1 + x^2)] + [e^x / (1 + e^{2x})]."
-    },
-    {
-      "question": "Dla funkcji f(x) = x^3 - 3x wyznacz przedziały, w których jest jednocześnie rosnąca i wypukła.",
-      "answer": "f'(x) = 3x^2 - 3. f'(x) > 0 <=> x in (-inf, -1) u (1, +inf). f''(x) = 6x. f''(x) > 0 <=> x > 0. Część wspólna: x in (1, +inf)."
-    }
-  ]
+  "examTitle": "Analiza Matematyczna – Pochodne i Badanie Przebiegu Zmienności Funkcji"
 }

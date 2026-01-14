@@ -145,7 +145,7 @@ class App {
   renderDashboard() {
     this.container.innerHTML = `
       <header class="header">
-        <a class="logo" onclick="app.renderDashboard()">MathPrep AI 🇵🇱</a>
+        <a class="logo" onclick="app.renderDashboard()">MathPrep AI</a>
         <button class="btn btn-primary" onclick="app.renderCreator()">+ Nowy Egzamin</button>
       </header>
       <main>
@@ -178,7 +178,7 @@ class App {
   renderCreator() {
     this.container.innerHTML = `
       <header class="header">
-        <a class="logo" onclick="app.renderDashboard()">MathPrep AI 🇵🇱</a>
+        <a class="logo" onclick="app.renderDashboard()">MathPrep AI</a>
       </header>
       <main class="creator-layout">
         <section>
@@ -220,7 +220,7 @@ class App {
       this.selectedFiles = Array.from(input.files);
       const list = document.getElementById('file-list');
       if (list) {
-        list.innerHTML = this.selectedFiles.map((f) => `<div>📄 ${f.name}</div>`).join('');
+        list.innerHTML = this.selectedFiles.map((f) => `<div>${f.name}</div>`).join('');
       }
     }
   }
@@ -446,7 +446,7 @@ class App {
               <div style="margin-top:1rem; font-weight:bold; border-top:1px solid #cbd5e1; padding-top:0.5rem;">
                 Odpowiedź: ${item.solution}
               </div>
-              ${item.tips ? `<div style="margin-top:0.5rem; color:#854d0e; font-size:0.9rem;">💡 Wskazówka: ${item.tips}</div>` : ''}
+              ${item.tips ? `<div style="margin-top:0.5rem; color:#854d0e; font-size:0.9rem;">Wskazówka: ${item.tips}</div>` : ''}
             </div>
           </div>
         `).join('')}
@@ -474,7 +474,7 @@ class App {
 
     this.container.innerHTML = `
       <header class="header">
-        <a class="logo" onclick="app.renderDashboard()">MathPrep AI 🇵🇱</a>
+        <a class="logo" onclick="app.renderDashboard()">MathPrep AI</a>
         <div>${project.title}</div>
       </header>
       <main class="study-layout">
