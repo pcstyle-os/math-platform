@@ -67,7 +67,7 @@ export const Header = () => {
                                 {getLabel("login")}
                             </a>
                             <a
-                                href="/register"
+                                href="/sign-up"
                                 className="btn-premium py-2.5 px-6 text-sm"
                             >
                                 {getLabel("register")}
