@@ -27,9 +27,10 @@ const getRole = (user: any) => {
 
 /**
  * Internal logic for syncing user stats, used by mutation and webhooks.
+ * IMPORTANT: Does NOT overwrite existing premium/admin roles from the database.
  */
 export async function syncUserLogic(ctx: any, user: { id: string, email: string, metadata?: any }) {
-    const role = getRole(user);
+    const metadataRole = getRole(user);
     const now = Date.now();
     const startOfMonth = new Date(now);
     startOfMonth.setDate(1);
@@ -45,7 +46,7 @@ export async function syncUserLogic(ctx: any, user: { id: string, email: string,
         await ctx.db.insert("users", {
             userId: user.id,
             email: user.email,
-            role,
+            role: metadataRole,
             theme: "minimalistic-warm",
             xp: 0,
             streak: 1,
@@ -55,10 +56,15 @@ export async function syncUserLogic(ctx: any, user: { id: string, email: string,
             monthlyMessages: 0,
             monthlyAudioSeconds: 0,
         });
-        return { xp: 0, streak: 1, role };
+        return { xp: 0, streak: 1, role: metadataRole };
     }
 
-    const patch: any = { lastLogin: now, role, email: user.email };
+    // Preserve existing premium/admin role - don't overwrite with "member" from metadata
+    const existingRole = record.role;
+    const isPremiumOrAdmin = existingRole === "premium" || existingRole === "admin";
+    const finalRole = isPremiumOrAdmin ? existingRole : metadataRole;
+
+    const patch: any = { lastLogin: now, role: finalRole, email: user.email };
 
     // Monthly Reset
     if ((record.lastResetAt || 0) < startOfMonthTs) {
@@ -90,7 +96,7 @@ export async function syncUserLogic(ctx: any, user: { id: string, email: string,
     return {
         xp: record.xp || 0,
         streak: patch.streak || record.streak || 1,
-        role,
+        role: finalRole,
         usage: {
             generations: patch.monthlyGenerations ?? record.monthlyGenerations ?? 0,
             messages: patch.monthlyMessages ?? record.monthlyMessages ?? 0,
