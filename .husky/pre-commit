@@ -1,0 +1,14 @@
+#!/usr/bin/env sh
+. "$(dirname -- "$0")/_/husky.sh"
+
+echo "🔍 Running Type Check..."
+bun run type-check
+
+echo "🧪 Running Tests..."
+bun run test
+
+echo "🏗️ Building Project..."
+bun run build
+
+echo "🧹 Running Lint & Format on Staged Files..."
+bunx lint-staged

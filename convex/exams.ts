@@ -7,252 +7,267 @@ import { GoogleGenAI, Type } from "@google/genai";
 // --- Schema Definition ---
 
 const learningPathSchema = {
-    type: Type.OBJECT,
-    properties: {
-        examTitle: {
-            type: Type.STRING,
-            description: 'A concise Polish title for this learning material.',
-        },
-        phase1_theory: {
-            type: Type.ARRAY,
-            description: 'Phase 1: Review of key concepts, formulas, and definitions found in the source material.',
-            items: {
-                type: Type.OBJECT,
-                properties: {
-                    topic: { type: Type.STRING, description: 'Name of the concept' },
-                    content: { type: Type.STRING, description: 'Detailed explanation including formulas.' },
-                },
-                required: ['topic', 'content'],
-            },
-        },
-        phase2_guided: {
-            type: Type.ARRAY,
-            description: 'Phase 2: Example exercises with step-by-step walkthroughs.',
-            items: {
-                type: Type.OBJECT,
-                properties: {
-                    question: { type: Type.STRING, description: 'Tytuł zadania lub treść problemu (LaTeX dozwolony)' },
-                    description: { type: Type.STRING, description: 'Opis zadania, dane wejściowe, kontekst. (LaTeX dozwolony)' },
-                    steps: {
-                        type: Type.ARRAY,
-                        items: { type: Type.STRING },
-                        description: 'Kroki rozwiązania. Każdy krok to logiczna część procesu.',
-                    },
-                    hints: {
-                        type: Type.ARRAY,
-                        items: { type: Type.STRING },
-                        description: 'Seria podpowiedzi, które uczeń może odkrywać (np. "Zauważ, że trójkąt jest prostokątny", "Użyj twierdzenia Pitagorasa").'
-                    },
-                    solution: { type: Type.STRING, description: 'Pełne rozwiązanie i wynik końcowy (w LaTeX).' },
-                },
-                required: ['question', 'steps', 'solution', 'hints'],
-            },
-        },
-        phase3_exam: {
-            type: Type.ARRAY,
-            description: 'Phase 3: A test for the user to solve independently.',
-            items: {
-                type: Type.OBJECT,
-                properties: {
-                    question: { type: Type.STRING },
-                    answer: { type: Type.STRING, description: 'The correct answer for grading' },
-                },
-                required: ['question', 'answer'],
-            },
-        },
-        flashcards: {
-            type: Type.ARRAY,
-            description: 'Flashcards for active recall. front: Definition/Formula, back: Explanation/Result.',
-            items: {
-                type: Type.OBJECT,
-                properties: {
-                    front: { type: Type.STRING },
-                    back: { type: Type.STRING },
-                },
-                required: ['front', 'back'],
-            },
-        },
+  type: Type.OBJECT,
+  properties: {
+    examTitle: {
+      type: Type.STRING,
+      description: "A concise Polish title for this learning material.",
     },
-    required: ['examTitle', 'phase1_theory', 'phase2_guided', 'phase3_exam', 'flashcards'],
+    phase1_theory: {
+      type: Type.ARRAY,
+      description:
+        "Phase 1: Review of key concepts, formulas, and definitions found in the source material.",
+      items: {
+        type: Type.OBJECT,
+        properties: {
+          topic: { type: Type.STRING, description: "Name of the concept" },
+          content: { type: Type.STRING, description: "Detailed explanation including formulas." },
+        },
+        required: ["topic", "content"],
+      },
+    },
+    phase2_guided: {
+      type: Type.ARRAY,
+      description: "Phase 2: Example exercises with step-by-step walkthroughs.",
+      items: {
+        type: Type.OBJECT,
+        properties: {
+          question: {
+            type: Type.STRING,
+            description: "Tytuł zadania lub treść problemu (LaTeX dozwolony)",
+          },
+          description: {
+            type: Type.STRING,
+            description: "Opis zadania, dane wejściowe, kontekst. (LaTeX dozwolony)",
+          },
+          steps: {
+            type: Type.ARRAY,
+            items: { type: Type.STRING },
+            description: "Kroki rozwiązania. Każdy krok to logiczna część procesu.",
+          },
+          hints: {
+            type: Type.ARRAY,
+            items: { type: Type.STRING },
+            description:
+              'Seria podpowiedzi, które uczeń może odkrywać (np. "Zauważ, że trójkąt jest prostokątny", "Użyj twierdzenia Pitagorasa").',
+          },
+          solution: {
+            type: Type.STRING,
+            description: "Pełne rozwiązanie i wynik końcowy (w LaTeX).",
+          },
+        },
+        required: ["question", "steps", "solution", "hints"],
+      },
+    },
+    phase3_exam: {
+      type: Type.ARRAY,
+      description: "Phase 3: A test for the user to solve independently.",
+      items: {
+        type: Type.OBJECT,
+        properties: {
+          question: { type: Type.STRING },
+          answer: { type: Type.STRING, description: "The correct answer for grading" },
+        },
+        required: ["question", "answer"],
+      },
+    },
+    flashcards: {
+      type: Type.ARRAY,
+      description:
+        "Flashcards for active recall. front: Definition/Formula, back: Explanation/Result.",
+      items: {
+        type: Type.OBJECT,
+        properties: {
+          front: { type: Type.STRING },
+          back: { type: Type.STRING },
+        },
+        required: ["front", "back"],
+      },
+    },
+  },
+  required: ["examTitle", "phase1_theory", "phase2_guided", "phase3_exam", "flashcards"],
 };
 
 // --- Mutations & Queries ---
 
 export const getExams = query({
-    args: {},
-    handler: async (ctx) => {
-        const user = await authKit.getAuthUser(ctx);
-        if (!user) return [];
-        return await ctx.db
-            .query("exams")
-            .withIndex("by_user", (q) => q.eq("userId", user.id))
-            .order("desc")
-            .collect();
-    },
+  args: {},
+  handler: async (ctx) => {
+    const user = await authKit.getAuthUser(ctx);
+    if (!user) return [];
+    return await ctx.db
+      .query("exams")
+      .withIndex("by_user", (q) => q.eq("userId", user.id))
+      .order("desc")
+      .collect();
+  },
 });
 
 export const getExam = query({
-    args: { id: v.id("exams") },
-    handler: async (ctx, args) => {
-        const user = await authKit.getAuthUser(ctx);
-        const exam = await ctx.db.get(args.id);
-        if (!exam || !user || exam.userId !== user.id) return null;
-        return exam;
-    },
+  args: { id: v.id("exams") },
+  handler: async (ctx, args) => {
+    const user = await authKit.getAuthUser(ctx);
+    const exam = await ctx.db.get(args.id);
+    if (!exam || !user || exam.userId !== user.id) return null;
+    return exam;
+  },
 });
 
 export const createExam = mutation({
-    args: {
-        title: v.string(),
-        storageIds: v.array(v.id("_storage")),
-        isSpeedrun: v.optional(v.boolean()),
-        hoursAvailable: v.optional(v.number()),
-    },
-    handler: async (ctx, args) => {
-        const user = await authKit.getAuthUser(ctx);
-        if (!user) throw new Error("Unauthorized");
+  args: {
+    title: v.string(),
+    storageIds: v.array(v.id("_storage")),
+    isSpeedrun: v.optional(v.boolean()),
+    hoursAvailable: v.optional(v.number()),
+  },
+  handler: async (ctx, args) => {
+    const user = await authKit.getAuthUser(ctx);
+    if (!user) throw new Error("Unauthorized");
 
-        const userRecord = await ctx.db
-            .query("users")
-            .withIndex("by_user", (q) => q.eq("userId", user.id))
-            .first();
+    const userRecord = await ctx.db
+      .query("users")
+      .withIndex("by_user", (q) => q.eq("userId", user.id))
+      .first();
 
-        const role = userRecord?.role || "member";
-        if (role === "member") {
-            const activeProjects = await ctx.db
-                .query("exams")
-                .withIndex("by_user", (q) => q.eq("userId", user.id))
-                .collect();
-            if (activeProjects.length >= 3) {
-                throw new Error("Limit projektów osiągnięty (max 3). Skasuj starszy projekt lub przejdź na Premium!");
-            }
+    const role = userRecord?.role || "member";
+    if (role === "member") {
+      const activeProjects = await ctx.db
+        .query("exams")
+        .withIndex("by_user", (q) => q.eq("userId", user.id))
+        .collect();
+      if (activeProjects.length >= 3) {
+        throw new Error(
+          "Limit projektów osiągnięty (max 3). Skasuj starszy projekt lub przejdź na Premium!",
+        );
+      }
 
-            if ((userRecord?.monthlyGenerations || 0) >= 5) {
-                throw new Error("Miesięczny limit generowań osiągnięty (max 5). Przejdź na Premium!");
-            }
-        }
+      if ((userRecord?.monthlyGenerations || 0) >= 5) {
+        throw new Error("Miesięczny limit generowań osiągnięty (max 5). Przejdź na Premium!");
+      }
+    }
 
-        const examId = await ctx.db.insert("exams", {
-            userId: user.id,
-            title: args.title,
-            status: "generating",
-            storageIds: args.storageIds,
-            isSpeedrun: args.isSpeedrun,
-            hoursAvailable: args.hoursAvailable,
-            createdAt: Date.now(),
-        });
+    const examId = await ctx.db.insert("exams", {
+      userId: user.id,
+      title: args.title,
+      status: "generating",
+      storageIds: args.storageIds,
+      isSpeedrun: args.isSpeedrun,
+      hoursAvailable: args.hoursAvailable,
+      createdAt: Date.now(),
+    });
 
-        // Increment usage for members
-        if (role === "member" && userRecord) {
-            await ctx.db.patch(userRecord._id, {
-                monthlyGenerations: (userRecord.monthlyGenerations || 0) + 1,
-            });
-        }
+    // Increment usage for members
+    if (role === "member" && userRecord) {
+      await ctx.db.patch(userRecord._id, {
+        monthlyGenerations: (userRecord.monthlyGenerations || 0) + 1,
+      });
+    }
 
-        return examId;
-    },
+    return examId;
+  },
 });
 
 export const updateExamStatus = mutation({
-    args: {
-        id: v.id("exams"),
-        status: v.union(v.literal("ready"), v.literal("error")),
-        data: v.optional(v.any()),
-        error: v.optional(v.string()),
-    },
-    handler: async (ctx, args) => {
-        await ctx.db.patch(args.id, {
-            status: args.status,
-            data: args.data,
-            error: args.error,
-        });
-    },
+  args: {
+    id: v.id("exams"),
+    status: v.union(v.literal("ready"), v.literal("error")),
+    data: v.optional(v.any()),
+    error: v.optional(v.string()),
+  },
+  handler: async (ctx, args) => {
+    await ctx.db.patch(args.id, {
+      status: args.status,
+      data: args.data,
+      error: args.error,
+    });
+  },
 });
 
 // --- File Storage ---
 
 export const generateUploadUrl = mutation(async (ctx) => {
-    return await ctx.storage.generateUploadUrl();
+  return await ctx.storage.generateUploadUrl();
 });
 
 export const storeFile = action({
-    args: { file: v.bytes(), contentType: v.optional(v.string()) },
-    handler: async (ctx, args) => {
-        const user = await authKit.getAuthUser(ctx);
-        if (!user) throw new Error("Unauthorized");
-        // Convert bytes to Blob for storage.store
-        const blob = new Blob([args.file], { type: args.contentType });
-        return await ctx.storage.store(blob);
-    },
+  args: { file: v.bytes(), contentType: v.optional(v.string()) },
+  handler: async (ctx, args) => {
+    const user = await authKit.getAuthUser(ctx);
+    if (!user) throw new Error("Unauthorized");
+    // Convert bytes to Blob for storage.store
+    const blob = new Blob([args.file], { type: args.contentType });
+    return await ctx.storage.store(blob);
+  },
 });
 
 // --- Actions & Misc ---
 
 export const renameExam = mutation({
-    args: { id: v.id("exams"), title: v.string() },
-    handler: async (ctx, args) => {
-        const user = await authKit.getAuthUser(ctx);
-        const exam = await ctx.db.get(args.id);
-        if (!exam || !user || exam.userId !== user.id) throw new Error("Unauthorized");
+  args: { id: v.id("exams"), title: v.string() },
+  handler: async (ctx, args) => {
+    const user = await authKit.getAuthUser(ctx);
+    const exam = await ctx.db.get(args.id);
+    if (!exam || !user || exam.userId !== user.id) throw new Error("Unauthorized");
 
-        await ctx.db.patch(args.id, { title: args.title });
-    },
+    await ctx.db.patch(args.id, { title: args.title });
+  },
 });
 
 export const deleteExam = mutation({
-    args: { id: v.id("exams") },
-    handler: async (ctx, args) => {
-        const user = await authKit.getAuthUser(ctx);
-        const exam = await ctx.db.get(args.id);
-        if (!exam || !user || exam.userId !== user.id) throw new Error("Unauthorized");
+  args: { id: v.id("exams") },
+  handler: async (ctx, args) => {
+    const user = await authKit.getAuthUser(ctx);
+    const exam = await ctx.db.get(args.id);
+    if (!exam || !user || exam.userId !== user.id) throw new Error("Unauthorized");
 
-        await ctx.db.delete(args.id);
-    },
+    await ctx.db.delete(args.id);
+  },
 });
 
 export const generateExam = action({
-    args: {
-        examId: v.id("exams"),
-        storageIds: v.array(v.id("_storage")),
-        isSpeedrun: v.optional(v.boolean()),
-        hoursAvailable: v.optional(v.number()),
-    },
-    handler: async (ctx, args) => {
-        try {
-            // Fetch all PDFs and convert to base64
-            const pdfParts = [];
-            for (const storageId of args.storageIds) {
-                const pdfBlob = await ctx.storage.get(storageId);
-                if (!pdfBlob) throw new Error(`PDF not found in storage: ${storageId}`);
-                const pdfBuffer = await pdfBlob.arrayBuffer();
-                const base64 = btoa(
-                    new Uint8Array(pdfBuffer)
-                        .reduce((data, byte) => data + String.fromCharCode(byte), '')
-                );
-                pdfParts.push({
-                    inlineData: {
-                        data: base64,
-                        mimeType: "application/pdf",
-                    },
-                });
-            }
+  args: {
+    examId: v.id("exams"),
+    storageIds: v.array(v.id("_storage")),
+    isSpeedrun: v.optional(v.boolean()),
+    hoursAvailable: v.optional(v.number()),
+  },
+  handler: async (ctx, args) => {
+    try {
+      // Fetch all PDFs and convert to base64
+      const pdfParts = [];
+      for (const storageId of args.storageIds) {
+        const pdfBlob = await ctx.storage.get(storageId);
+        if (!pdfBlob) throw new Error(`PDF not found in storage: ${storageId}`);
+        const pdfBuffer = await pdfBlob.arrayBuffer();
+        const base64 = btoa(
+          new Uint8Array(pdfBuffer).reduce((data, byte) => data + String.fromCharCode(byte), ""),
+        );
+        pdfParts.push({
+          inlineData: {
+            data: base64,
+            mimeType: "application/pdf",
+          },
+        });
+      }
 
-            const apiKey = process.env.GEMINI_API_KEY;
-            if (!apiKey) throw new Error("GEMINI_API_KEY not set");
+      const apiKey = process.env.GEMINI_API_KEY;
+      if (!apiKey) throw new Error("GEMINI_API_KEY not set");
 
-            const ai = new GoogleGenAI({ apiKey });
+      const ai = new GoogleGenAI({ apiKey });
 
-            // Build prompt with all PDFs
-            const response = await ai.models.generateContent({
-                model: 'gemini-3-pro-preview',
-                contents: [
-                    {
-                        role: 'user',
-                        parts: [
-                            ...pdfParts,
-                            {
-                                text: `Jesteś wybitnym profesorem matematyki i ekspertem od dydaktyki. Twoim celem jest stworzenie SZCZEGÓŁOWEGO, ANGARAŻUJĄCEGO i SKUTECZNEGO planu nauki na podstawie przesłanych materiałów (PDF).
-${args.isSpeedrun ? `
+      // Build prompt with all PDFs
+      const response = await ai.models.generateContent({
+        model: "gemini-3-pro-preview",
+        contents: [
+          {
+            role: "user",
+            parts: [
+              ...pdfParts,
+              {
+                text: `Jesteś wybitnym profesorem matematyki i ekspertem od dydaktyki. Twoim celem jest stworzenie SZCZEGÓŁOWEGO, ANGARAŻUJĄCEGO i SKUTECZNEGO planu nauki na podstawie przesłanych materiałów (PDF).
+${
+  args.isSpeedrun
+    ? `
 🚨 TRYB ALARMOWY (SPEEDRUN): Użytkownik ma tylko ${args.hoursAvailable} godzin do egzaminu! 
 TWOJE ZADANIE:
 - Zastosuj zasadę Pareto (80/20). Skup się WYŁĄCZNIE na tematach, które pojawiają się najczęściej i mają największy wpływ na wynik.
@@ -261,7 +276,9 @@ TWOJE ZADANIE:
 - Bądź niezwykle zwięzły, ale konkretny.
 - Phase 1 (Teoria) powinna zawierać tylko esencję + najważniejsze wzory.
 - Phase 2 (Praktyka) powinna skupić się na typowych zadaniach egzaminacyjnych.
-` : ""}
+`
+    : ""
+}
 
 Analiza:
 - Przeanalizuj dokładnie każdy przesłany plik.
@@ -307,38 +324,37 @@ Struktura Planu:
 
 Bądź kreatywny, ale merytorycznie rygorystyczny. Traktuj użytkownika jak inteligentnego studenta, który chce zrozumieć, a nie tylko zdać.
 Wygeneruj dużo treści. Nie oszczędzaj na wyjaśnieniach. Twoim priorytetem jest JASNOŚĆ i CZYTELNOŚĆ.`,
-                            },
-                        ],
-                    },
-                ],
-                config: {
-                    responseMimeType: "application/json",
-                    responseSchema: learningPathSchema,
-                    thinkingConfig: { thinkingBudget: 4096 },
-                },
-            });
+              },
+            ],
+          },
+        ],
+        config: {
+          responseMimeType: "application/json",
+          responseSchema: learningPathSchema,
+          thinkingConfig: { thinkingBudget: 4096 },
+        },
+      });
 
-            const responseText = response.text;
-            if (responseText) {
-                const data = JSON.parse(responseText);
+      const responseText = response.text;
+      if (responseText) {
+        const data = JSON.parse(responseText);
 
-                await ctx.runMutation(api.exams.updateExamStatus, {
-                    id: args.examId,
-                    status: "ready",
-                    data: data,
-                });
-                return;
-            }
+        await ctx.runMutation(api.exams.updateExamStatus, {
+          id: args.examId,
+          status: "ready",
+          data: data,
+        });
+        return;
+      }
 
-            throw new Error("Model nie zwrócił poprawnego JSONa.");
-
-        } catch (e) {
-            console.error(e);
-            await ctx.runMutation(api.exams.updateExamStatus, {
-                id: args.examId,
-                status: "error",
-                error: (e as Error).message,
-            });
-        }
-    },
+      throw new Error("Model nie zwrócił poprawnego JSONa.");
+    } catch (e) {
+      console.error(e);
+      await ctx.runMutation(api.exams.updateExamStatus, {
+        id: args.examId,
+        status: "error",
+        error: (e as Error).message,
+      });
+    }
+  },
 });

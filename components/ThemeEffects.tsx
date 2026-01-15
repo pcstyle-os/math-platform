@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useThemeLabels } from "@/hooks/useThemeLabels";
@@ -7,15 +6,15 @@ import { CRTOverlay } from "@/components/ui/CRTOverlay";
 import { NeuralCursor } from "@/components/ui/NeuralCursor";
 
 export function ThemeEffects() {
-    const { isCyber } = useThemeLabels();
+  const { isCyber } = useThemeLabels();
 
-    if (!isCyber) return null;
+  if (!isCyber) return null;
 
-    return (
-        <>
-            <MatrixBackground />
-            <CRTOverlay />
-            <NeuralCursor />
-        </>
-    );
+  return (
+    <>
+      <MatrixBackground />
+      <CRTOverlay />
+      <NeuralCursor />
+    </>
+  );
 }

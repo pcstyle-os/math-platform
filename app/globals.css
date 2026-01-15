@@ -121,7 +121,6 @@
   --font-mono: var(--font-geist-mono);
 }
 
-
 /* Global cursor reset */
 * {
   cursor: auto;
@@ -131,8 +130,7 @@
   cursor: none;
 }
 
-@media (hover: none),
-(pointer: coarse) {
+@media (hover: none), (pointer: coarse) {
   [data-theme="cybernetic-dark"] * {
     cursor: auto !important;
   }
@@ -143,7 +141,6 @@
   color: #fff;
 }
 
-
 body {
   background: var(--background);
   color: var(--foreground);
@@ -151,7 +148,9 @@ body {
   min-height: 100vh;
   overflow-x: hidden;
   letter-spacing: var(--letter-spacing);
-  transition: background-color 0.3s ease, color 0.3s ease;
+  transition:
+    background-color 0.3s ease,
+    color 0.3s ease;
 }
 
 /* Custom Scrollbar */
@@ -198,19 +197,21 @@ body {
 }
 
 @keyframes pulse-glow {
-
   0%,
   100% {
-    box-shadow: 0 0 5px var(--glow), 0 0 10px var(--glow);
+    box-shadow:
+      0 0 5px var(--glow),
+      0 0 10px var(--glow);
   }
 
   50% {
-    box-shadow: 0 0 15px var(--glow), 0 0 25px var(--glow);
+    box-shadow:
+      0 0 15px var(--glow),
+      0 0 25px var(--glow);
   }
 }
 
 @keyframes blink {
-
   0%,
   100% {
     opacity: 1;

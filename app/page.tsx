@@ -23,19 +23,30 @@ export default function LandingPage() {
             transition={{ duration: 0.8 }}
             className="space-y-6"
           >
-            <div className={`inline-flex items-center gap-2 px-4 py-2 text-xs font-bold tracking-widest uppercase transition-all ${isCyber
-              ? "bg-[var(--primary)]/10 text-[var(--primary)] border border-[var(--primary)]/30"
-              : "bg-[var(--primary)]/5 text-[var(--primary)] rounded-full"
-              }`}>
+            <div
+              className={`inline-flex items-center gap-2 px-4 py-2 text-xs font-bold tracking-widest uppercase transition-all ${
+                isCyber
+                  ? "bg-[var(--primary)]/10 text-[var(--primary)] border border-[var(--primary)]/30"
+                  : "bg-[var(--primary)]/5 text-[var(--primary)] rounded-full"
+              }`}
+            >
               <Zap className="w-4 h-4" />
               {isCyber ? "NEXT_GEN_LEARNING_PROTOCOL" : "Nowoczesna nauka wspomagana AI"}
             </div>
 
             <h1 className="text-4xl sm:text-6xl lg:text-7xl xl:text-8xl font-extrabold tracking-tighter leading-tight text-[var(--foreground)]">
               {isCyber ? (
-                <>GENERYCZNY_PLAN<br /><span className="text-[var(--primary)]">NAUKI_MATMY</span></>
+                <>
+                  GENERYCZNY_PLAN
+                  <br />
+                  <span className="text-[var(--primary)]">NAUKI_MATMY</span>
+                </>
               ) : (
-                <>Zapanuj nad<br /><span className="text-[var(--primary)] text-glow">Matematyką</span></>
+                <>
+                  Zapanuj nad
+                  <br />
+                  <span className="text-[var(--primary)] text-glow">Matematyką</span>
+                </>
               )}
             </h1>
 
@@ -52,14 +63,21 @@ export default function LandingPage() {
             transition={{ delay: 0.3, duration: 0.8 }}
             className="flex flex-col sm:flex-row gap-4 sm:gap-6 justify-center pt-6 sm:pt-8"
           >
-            <Link href="/create" className="btn-premium flex items-center justify-center gap-3 text-base sm:text-lg px-8 sm:px-10 py-4 sm:py-5">
+            <Link
+              href="/create"
+              className="btn-premium flex items-center justify-center gap-3 text-base sm:text-lg px-8 sm:px-10 py-4 sm:py-5"
+            >
               <Sparkles className="w-6 h-6" />
               {getLabel("newPlan")}
             </Link>
-            <Link href="/dashboard" className={`flex items-center justify-center gap-3 px-8 sm:px-10 py-4 sm:py-5 text-base sm:text-lg font-bold transition-all ${isCyber
-              ? "border border-[var(--border)] text-[var(--text-muted)] hover:border-[var(--primary)] hover:text-[var(--primary)]"
-              : "bg-[var(--foreground)] text-[var(--background)] hover:opacity-90 rounded-[var(--radius)]"
-              }`}>
+            <Link
+              href="/dashboard"
+              className={`flex items-center justify-center gap-3 px-8 sm:px-10 py-4 sm:py-5 text-base sm:text-lg font-bold transition-all ${
+                isCyber
+                  ? "border border-[var(--border)] text-[var(--text-muted)] hover:border-[var(--primary)] hover:text-[var(--primary)]"
+                  : "bg-[var(--foreground)] text-[var(--background)] hover:opacity-90 rounded-[var(--radius)]"
+              }`}
+            >
               <ArrowRight className="w-6 h-6" />
               {getLabel("dashboard")}
             </Link>
@@ -73,31 +91,44 @@ export default function LandingPage() {
       </main>
 
       {/* Features Preview */}
-      <section id="features" className="py-20 sm:py-24 px-4 sm:px-8 border-t border-[var(--border)] bg-[var(--surface)]/30">
+      <section
+        id="features"
+        className="py-20 sm:py-24 px-4 sm:px-8 border-t border-[var(--border)] bg-[var(--surface)]/30"
+      >
         <div className="max-w-6xl mx-auto grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 lg:gap-12">
           {[
             {
               icon: Cpu,
               title: isCyber ? "AI_CORE_ANALYSIS" : "Głęboka Analiza",
-              desc: isCyber ? "Zaawansowane modele LLM procesują dane wejściowe." : "Nasze algorytmy wyciągają najważniejsze wzory i twierdzenia z Twoich notatek."
+              desc: isCyber
+                ? "Zaawansowane modele LLM procesują dane wejściowe."
+                : "Nasze algorytmy wyciągają najważniejsze wzory i twierdzenia z Twoich notatek.",
             },
             {
               icon: Rocket,
               title: isCyber ? "LINEAR_EVOLUTION" : "Ścieżka Postępu",
-              desc: isCyber ? "Zoptymalizowany przepływ wiedzy w fazowych modułach." : "Nauka podzielona na logiczne etapy: od teorii, przez praktykę, aż po test końcowy."
+              desc: isCyber
+                ? "Zoptymalizowany przepływ wiedzy w fazowych modułach."
+                : "Nauka podzielona na logiczne etapy: od teorii, przez praktykę, aż po test końcowy.",
             },
             {
               icon: ShieldCheck,
               title: isCyber ? "VALIDATED_RESULTS" : "Gwarancja Sukcesu",
-              desc: isCyber ? "Weryfikacja wiedzy przez systemy symulacyjne." : "Sprawdź swoje umiejętności w kontrolowanych warunkach przed prawdziwym egzaminem."
-            }
+              desc: isCyber
+                ? "Weryfikacja wiedzy przez systemy symulacyjne."
+                : "Sprawdź swoje umiejętności w kontrolowanych warunkach przed prawdziwym egzaminem.",
+            },
           ].map((f, i) => (
             <div key={i} className="card-premium space-y-4">
-              <div className={`w-12 h-12 flex items-center justify-center ${isCyber ? "border border-[var(--primary)] text-[var(--primary)]" : "bg-[var(--primary)]/10 text-[var(--primary)] rounded-2xl"}`}>
+              <div
+                className={`w-12 h-12 flex items-center justify-center ${isCyber ? "border border-[var(--primary)] text-[var(--primary)]" : "bg-[var(--primary)]/10 text-[var(--primary)] rounded-2xl"}`}
+              >
                 <f.icon className="w-6 h-6" />
               </div>
               <h3 className="text-xl font-bold">{f.title}</h3>
-              <p className="text-[var(--text-muted)] leading-relaxed text-sm font-medium">{f.desc}</p>
+              <p className="text-[var(--text-muted)] leading-relaxed text-sm font-medium">
+                {f.desc}
+              </p>
             </div>
           ))}
         </div>

@@ -1,0 +1,8 @@
+.next
+node_modules
+dist
+.convex
+build
+*.lock
+package-lock.json
+bun.lock

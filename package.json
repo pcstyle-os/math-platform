@@ -8,7 +8,18 @@
     "start": "next start",
     "lint": "eslint",
     "db:clear": "bunx convex run admin:clearAll",
-    "db:premium": "bun scripts/make-premium.ts"
+    "db:premium": "bun scripts/make-premium.ts",
+    "prepare": "husky",
+    "test": "vitest run",
+    "type-check": "tsc --noEmit",
+    "format": "prettier --write ."
+  },
+  "lint-staged": {
+    "*.{js,jsx,ts,tsx}": [
+      "prettier --write",
+      "eslint --fix"
+    ],
+    "*.{json,md,css}": "prettier --write"
   },
   "dependencies": {
     "@convex-dev/workos-authkit": "^0.1.5",
@@ -35,14 +46,23 @@
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4.1.18",
+    "@testing-library/jest-dom": "^6.9.1",
+    "@testing-library/react": "^16.3.1",
     "@types/canvas-confetti": "^1.9.0",
     "@types/node": "^20.19.29",
     "@types/react": "^19.2.8",
     "@types/react-dom": "^19.2.3",
+    "@vitejs/plugin-react": "^5.1.2",
     "eslint": "^9.39.2",
     "eslint-config-next": "16.1.1",
+    "eslint-config-prettier": "^10.1.8",
+    "husky": "^9.1.7",
+    "jsdom": "^27.4.0",
+    "lint-staged": "^16.2.7",
+    "prettier": "^3.8.0",
     "tailwindcss": "^4.1.18",
-    "typescript": "^5.9.3"
+    "typescript": "^5.9.3",
+    "vitest": "^4.0.17"
   },
   "ignoreScripts": [
     "sharp",
