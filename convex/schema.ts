@@ -69,7 +69,35 @@ export default defineSchema({
     monthlyGenerations: v.optional(v.number()),
     monthlyMessages: v.optional(v.number()),
     monthlyAudioSeconds: v.optional(v.number()),
+
+    // Solver Specific Settings (moved from localStorage to DB)
+    solverSystemPrompt: v.optional(v.string()),
+    solverDefaultHomepage: v.optional(v.boolean()),
+    solverKnowledgeBase: v.optional(
+      v.array(
+        v.object({
+          id: v.string(),
+          name: v.string(),
+          content: v.string(),
+          type: v.string(), // 'pdf' | 'md' | 'txt'
+        }),
+      ),
+    ),
   })
     .index("by_user", ["userId"])
     .index("by_email", ["email"]),
+
+  // New: Solver Chat History (Synced)
+  solverMessages: defineTable({
+    userId: v.string(),
+    role: v.union(v.literal("user"), v.literal("assistant")),
+    content: v.string(),
+    attachment: v.optional(
+      v.object({
+        name: v.string(),
+        preview: v.optional(v.string()), // Still storing base64 for preview, ideally storageId
+      }),
+    ),
+    createdAt: v.number(),
+  }).index("by_user", ["userId", "createdAt"]),
 });

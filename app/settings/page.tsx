@@ -35,7 +35,7 @@ const themes = [
 ];
 
 export default function SettingsPage() {
-  const userSettings = useQuery(api.users.getSettings);
+  const userSettings = useQuery(api.users.getUserDetails);
   const updateSettings = useMutation(api.users.updateSettings);
   const [selectedTheme, setSelectedTheme] = useState("minimalistic-light");
   const [isSaving, setIsSaving] = useState(false);
@@ -48,10 +48,20 @@ export default function SettingsPage() {
     }
   }, [userSettings]);
 
-  // Load solver homepage preference from localStorage
+  // Sync DB settings
+  useEffect(() => {
+    if (userSettings?.solverDefaultHomepage !== undefined) {
+      setSolverAsHomepage(userSettings.solverDefaultHomepage);
+      localStorage.setItem("solver-default-homepage", String(userSettings.solverDefaultHomepage));
+    }
+  }, [userSettings]);
+
+  // Initial load from localStorage for speed
   useEffect(() => {
     const saved = localStorage.getItem("solver-default-homepage");
-    setSolverAsHomepage(saved === "true");
+    if (saved !== null) {
+      setSolverAsHomepage(saved === "true");
+    }
   }, []);
 
   const handleThemeChange = async (themeId: string) => {
@@ -67,10 +77,11 @@ export default function SettingsPage() {
     }
   };
 
-  const toggleSolverHomepage = () => {
+  const toggleSolverHomepage = async () => {
     const newValue = !solverAsHomepage;
     setSolverAsHomepage(newValue);
     localStorage.setItem("solver-default-homepage", String(newValue));
+    await updateSettings({ solverDefaultHomepage: newValue });
   };
 
   return (

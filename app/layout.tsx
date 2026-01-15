@@ -9,6 +9,7 @@ import { TutorSidebar } from "@/components/TutorSidebar";
 import { UserSync } from "@/components/UserSync";
 import { ServiceWorkerRegistrar } from "@/components/ServiceWorkerRegistrar";
 import { HomepageRedirect } from "@/components/HomepageRedirect";
+import { PWAUpdateToast } from "@/components/PWAUpdateToast";
 
 const jetbrainsMono = JetBrains_Mono({
   variable: "--font-geist-mono",
@@ -41,6 +42,7 @@ export default function RootLayout({
             <TutorProvider>
               <ThemeEffects />
               <ServiceWorkerRegistrar />
+              <PWAUpdateToast />
               <HomepageRedirect />
               <div className="relative z-10">{children}</div>
               <TutorSidebar />

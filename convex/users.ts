@@ -119,7 +119,15 @@ export const getSettings = query({
       .withIndex("by_user", (q) => q.eq("userId", user.id))
       .first();
 
-    return settings || { theme: "minimalistic-warm", role: "member" };
+    return (
+      settings || {
+        theme: "minimalistic-warm",
+        role: "member",
+        solverSystemPrompt: undefined,
+        solverDefaultHomepage: false,
+        solverKnowledgeBase: [],
+      }
+    );
   },
 });
 
@@ -131,35 +139,50 @@ export const updateSettings = mutation({
         primaryColor: v.optional(v.string()),
       }),
     ),
+    solverSystemPrompt: v.optional(v.string()),
+    solverDefaultHomepage: v.optional(v.boolean()),
+    solverKnowledgeBase: v.optional(
+      v.array(
+        v.object({
+          id: v.string(),
+          name: v.string(),
+          content: v.string(),
+          type: v.string(),
+        }),
+      ),
+    ),
   },
   handler: async (ctx, args) => {
     const user = await authKit.getAuthUser(ctx);
     if (!user) throw new Error("Unauthorized");
 
-    const existing = await ctx.db
+    let existing = await ctx.db
       .query("users")
       .withIndex("by_user", (q) => q.eq("userId", user.id))
       .first();
 
-    if (existing) {
-      await ctx.db.patch(existing._id, {
-        ...(args.theme && { theme: args.theme }),
-        ...(args.customizations && { customizations: args.customizations }),
-      });
-    } else {
-      // If they don't have a record yet, create it with syncUserLogic
+    if (!existing) {
       await syncUserLogic(ctx, { id: user.id, email: user.email, metadata: user.metadata });
-      // Then patch with theme
-      const updated = await ctx.db
+      existing = await ctx.db
         .query("users")
         .withIndex("by_user", (q) => q.eq("userId", user.id))
         .first();
-      if (updated) {
-        await ctx.db.patch(updated._id, {
-          ...(args.theme && { theme: args.theme }),
-          ...(args.customizations && { customizations: args.customizations }),
-        });
-      }
+    }
+
+    if (existing) {
+      await ctx.db.patch(existing._id, {
+        ...(args.theme !== undefined && { theme: args.theme }),
+        ...(args.customizations !== undefined && { customizations: args.customizations }),
+        ...(args.solverSystemPrompt !== undefined && {
+          solverSystemPrompt: args.solverSystemPrompt,
+        }),
+        ...(args.solverDefaultHomepage !== undefined && {
+          solverDefaultHomepage: args.solverDefaultHomepage,
+        }),
+        ...(args.solverKnowledgeBase !== undefined && {
+          solverKnowledgeBase: args.solverKnowledgeBase,
+        }),
+      });
     }
   },
 });

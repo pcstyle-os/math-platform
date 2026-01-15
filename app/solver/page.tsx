@@ -19,6 +19,8 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { MathContent } from "@/components/MathContent";
+import { useQuery, useMutation } from "convex/react";
+import { api } from "@/convex/_generated/api";
 
 // Types
 type AttachmentPayload = {
@@ -67,14 +69,21 @@ ZASADY:
 4. Jeśli brakuje danych lub obraz jest nieczytelny, krótko napisz czego brakuje.`;
 
 export default function SolverPage() {
-  // Core state
+  // Settings & Gallery state
+  const userDetails = useQuery(api.users.getUserDetails);
+  const updateSettings = useMutation(api.users.updateSettings);
+
+  // Cloud Chat History
+  const cloudMessages = useQuery(api.solverMessages.list);
+  const addCloudMessage = useMutation(api.solverMessages.add);
+  const clearCloudChat = useMutation(api.solverMessages.clear);
+
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputText, setInputText] = useState("");
   const [pendingFile, setPendingFile] = useState<File | null>(null);
   const [pendingPreview, setPendingPreview] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Settings & Gallery state
   const [showSettings, setShowSettings] = useState(false);
   const [showGallery, setShowGallery] = useState(false);
   const [systemPrompt, setSystemPrompt] = useState(DEFAULT_SYSTEM_PROMPT);
@@ -90,11 +99,8 @@ export default function SolverPage() {
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const abortControllerRef = useRef<AbortController | null>(null);
 
-  // Load from localStorage on mount
+  // Load from localStorage on mount (Gallery only - history is now cloud)
   useEffect(() => {
-    const savedPrompt = localStorage.getItem(STORAGE_KEYS.SYSTEM_PROMPT);
-    if (savedPrompt) setSystemPrompt(savedPrompt);
-
     const savedGallery = localStorage.getItem(STORAGE_KEYS.GALLERY);
     if (savedGallery) {
       try {
@@ -103,35 +109,33 @@ export default function SolverPage() {
         /* ignore */
       }
     }
-
-    const savedKnowledge = localStorage.getItem(STORAGE_KEYS.KNOWLEDGE_BASE);
-    if (savedKnowledge) {
-      try {
-        setKnowledgeBase(JSON.parse(savedKnowledge));
-      } catch {
-        /* ignore */
-      }
-    }
-
-    const savedHistory = localStorage.getItem(STORAGE_KEYS.CHAT_HISTORY);
-    if (savedHistory) {
-      try {
-        setMessages(JSON.parse(savedHistory));
-      } catch {
-        /* ignore */
-      }
-    }
-
-    const savedHomepage = localStorage.getItem(STORAGE_KEYS.DEFAULT_HOMEPAGE);
-    setIsDefaultHomepage(savedHomepage === "true");
   }, []);
 
-  // Persist chat history
+  // Sync Cloud Messages to local state for streaming
   useEffect(() => {
-    if (messages.length > 0) {
-      localStorage.setItem(STORAGE_KEYS.CHAT_HISTORY, JSON.stringify(messages.slice(-50)));
+    if (cloudMessages && !isSubmitting) {
+      // Reverse because we query 'desc' in DB but want 'asc' for chat UI
+      const formatted: Message[] = [...cloudMessages].reverse().map((m) => ({
+        id: m._id,
+        role: m.role,
+        content: m.content,
+        attachment: m.attachment,
+      }));
+      setMessages(formatted);
     }
-  }, [messages]);
+  }, [cloudMessages, isSubmitting]);
+
+  // Sync DB settings
+  useEffect(() => {
+    if (userDetails) {
+      if (userDetails.solverSystemPrompt) setSystemPrompt(userDetails.solverSystemPrompt);
+      if (userDetails.solverDefaultHomepage !== undefined)
+        setIsDefaultHomepage(userDetails.solverDefaultHomepage);
+      if (userDetails.solverKnowledgeBase) {
+        setKnowledgeBase(userDetails.solverKnowledgeBase as KnowledgeFile[]);
+      }
+    }
+  }, [userDetails]);
 
   // Auto-scroll
   useEffect(() => {
@@ -227,174 +231,27 @@ export default function SolverPage() {
 
     const updated = [...knowledgeBase, newFile];
     setKnowledgeBase(updated);
-    localStorage.setItem(STORAGE_KEYS.KNOWLEDGE_BASE, JSON.stringify(updated));
+    updateSettings({ solverKnowledgeBase: updated });
   };
 
   const removeFromKnowledgeBase = (id: string) => {
     const updated = knowledgeBase.filter((f) => f.id !== id);
     setKnowledgeBase(updated);
-    localStorage.setItem(STORAGE_KEYS.KNOWLEDGE_BASE, JSON.stringify(updated));
+    updateSettings({ solverKnowledgeBase: updated });
   };
 
   // Settings handlers
   const saveSystemPrompt = (prompt: string) => {
     setSystemPrompt(prompt);
-    localStorage.setItem(STORAGE_KEYS.SYSTEM_PROMPT, prompt);
+    updateSettings({ solverSystemPrompt: prompt });
   };
 
   const toggleDefaultHomepage = () => {
     const newValue = !isDefaultHomepage;
     setIsDefaultHomepage(newValue);
-    localStorage.setItem(STORAGE_KEYS.DEFAULT_HOMEPAGE, String(newValue));
+    updateSettings({ solverDefaultHomepage: newValue });
+    localStorage.setItem(STORAGE_KEYS.DEFAULT_HOMEPAGE, String(newValue)); // Keep for fast redirect
   };
-
-  // File selection
-  const handleFileSelect = useCallback((files: FileList | null) => {
-    if (!files || files.length === 0) return;
-    const file = files[0];
-    if (!file.type.startsWith("image/") && file.type !== "application/pdf") return;
-
-    setPendingFile(file);
-    if (file.type.startsWith("image/")) {
-      const reader = new FileReader();
-      reader.onload = () => setPendingPreview(reader.result as string);
-      reader.readAsDataURL(file);
-    } else {
-      setPendingPreview(null);
-    }
-  }, []);
-
-  // Main submit with streaming
-  const handleSubmit = useCallback(async () => {
-    const hasContent = inputText.trim() || pendingFile;
-    if (!hasContent || isSubmitting) return;
-
-    const userMessageId = Date.now().toString();
-    const userMessage: Message = {
-      id: userMessageId,
-      role: "user",
-      content: inputText.trim(),
-      attachment: pendingFile
-        ? { name: pendingFile.name, preview: pendingPreview || undefined }
-        : undefined,
-    };
-
-    setMessages((prev) => [...prev, userMessage]);
-    setIsSubmitting(true);
-
-    const currentText = inputText.trim();
-    const currentFile = pendingFile;
-
-    setInputText("");
-    setPendingFile(null);
-    setPendingPreview(null);
-    if (fileInputRef.current) fileInputRef.current.value = "";
-
-    // Prepare assistant message for streaming
-    const assistantMessageId = (Date.now() + 1).toString();
-    setMessages((prev) => [
-      ...prev,
-      { id: assistantMessageId, role: "assistant", content: "", isStreaming: true },
-    ]);
-
-    try {
-      // Build attachments
-      let attachments: AttachmentPayload[] | undefined;
-      if (currentFile) {
-        // Check if it's from gallery
-        const galleryData = (currentFile as unknown as { __galleryData?: GalleryImage })
-          .__galleryData;
-        if (galleryData) {
-          attachments = [
-            { name: galleryData.name, mimeType: galleryData.mimeType, data: galleryData.data },
-          ];
-        } else {
-          attachments = [await toBase64(currentFile)];
-        }
-      }
-
-      // Build context from previous messages (last 4 exchanges max)
-      const contextMessages = messages.slice(-8);
-      const contextPrompt =
-        contextMessages.length > 0
-          ? contextMessages
-              .map((m) => `${m.role === "user" ? "Użytkownik" : "Asystent"}: ${m.content}`)
-              .join("\n") +
-            "\n\nUżytkownik: " +
-            (currentText || "(załącznik)")
-          : currentText || undefined;
-
-      // Build knowledge context
-      const knowledgeContext =
-        knowledgeBase.length > 0
-          ? knowledgeBase.map((f) => `### ${f.name}\n${f.content}`).join("\n\n---\n\n")
-          : undefined;
-
-      // Create abort controller for cancellation
-      abortControllerRef.current = new AbortController();
-
-      const response = await fetch("/api/solver/stream", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          prompt: contextPrompt,
-          attachments,
-          systemPrompt: systemPrompt !== DEFAULT_SYSTEM_PROMPT ? systemPrompt : undefined,
-          knowledgeContext,
-        }),
-        signal: abortControllerRef.current.signal,
-      });
-
-      if (!response.ok) {
-        throw new Error("Failed to get response");
-      }
-
-      const reader = response.body?.getReader();
-      if (!reader) throw new Error("No reader available");
-
-      const decoder = new TextDecoder();
-      let fullContent = "";
-
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-
-        const chunk = decoder.decode(value, { stream: true });
-        fullContent += chunk;
-
-        setMessages((prev) =>
-          prev.map((msg) =>
-            msg.id === assistantMessageId ? { ...msg, content: fullContent } : msg,
-          ),
-        );
-      }
-
-      // Mark streaming as complete
-      setMessages((prev) =>
-        prev.map((msg) => (msg.id === assistantMessageId ? { ...msg, isStreaming: false } : msg)),
-      );
-    } catch (error) {
-      if ((error as Error).name === "AbortError") {
-        // User cancelled, remove the empty assistant message
-        setMessages((prev) => prev.filter((msg) => msg.id !== assistantMessageId));
-      } else {
-        setMessages((prev) =>
-          prev.map((msg) =>
-            msg.id === assistantMessageId
-              ? {
-                  ...msg,
-                  content: "Błąd podczas generowania odpowiedzi. Spróbuj ponownie.",
-                  isStreaming: false,
-                }
-              : msg,
-          ),
-        );
-      }
-    } finally {
-      setIsSubmitting(false);
-      abortControllerRef.current = null;
-    }
-  }, [inputText, pendingFile, pendingPreview, isSubmitting, messages, systemPrompt, knowledgeBase]);
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === "Enter" && !e.shiftKey) {
@@ -409,13 +266,198 @@ export default function SolverPage() {
     if (fileInputRef.current) fileInputRef.current.value = "";
   };
 
-  const clearChat = () => {
+  const clearChat = async () => {
     setMessages([]);
     setInputText("");
     setPendingFile(null);
     setPendingPreview(null);
-    localStorage.removeItem(STORAGE_KEYS.CHAT_HISTORY);
+    await clearCloudChat();
   };
+
+  // Main submit with streaming
+  const handleSubmit = useCallback(
+    async (overrideFile?: File, overridePreview?: string) => {
+      const currentText = inputText.trim();
+      const currentFile = overrideFile || pendingFile;
+      const currentPreview = overridePreview || pendingPreview;
+
+      const hasContent = currentText || currentFile;
+      if (!hasContent || isSubmitting) return;
+
+      const userMessageId = "temp-" + Date.now().toString();
+      const userMessage: Message = {
+        id: userMessageId,
+        role: "user",
+        content: currentText,
+        attachment: currentFile
+          ? { name: currentFile.name, preview: currentPreview || undefined }
+          : undefined,
+      };
+
+      // Add to local state for immediate feedback
+      setMessages((prev) => [...prev, userMessage]);
+      setIsSubmitting(true);
+
+      // Save user message to cloud
+      addCloudMessage({
+        role: "user",
+        content: currentText,
+        attachment: currentFile
+          ? { name: currentFile.name, preview: currentPreview || undefined }
+          : undefined,
+      });
+
+      setInputText("");
+      setPendingFile(null);
+      setPendingPreview(null);
+      if (fileInputRef.current) fileInputRef.current.value = "";
+
+      // Prepare assistant message for streaming
+      const assistantMessageId = "temp-streaming";
+      setMessages((prev) => [
+        ...prev,
+        { id: assistantMessageId, role: "assistant", content: "", isStreaming: true },
+      ]);
+
+      try {
+        // Build attachments
+        let attachments: AttachmentPayload[] | undefined;
+        if (currentFile) {
+          // Check if it's from gallery
+          const galleryData = (currentFile as unknown as { __galleryData?: GalleryImage })
+            .__galleryData;
+          if (galleryData) {
+            attachments = [
+              { name: galleryData.name, mimeType: galleryData.mimeType, data: galleryData.data },
+            ];
+          } else {
+            attachments = [await toBase64(currentFile)];
+          }
+        }
+
+        // Build context from previous messages (last 8 exchanges max)
+        const contextMessages = messages.slice(-8);
+        const contextPrompt =
+          contextMessages.length > 0
+            ? contextMessages
+                .map((m) => `${m.role === "user" ? "Użytkownik" : "Asystent"}: ${m.content}`)
+                .join("\n") +
+              "\n\nUżytkownik: " +
+              (currentText || "(załącznik)")
+            : currentText || undefined;
+
+        // Build knowledge context
+        const knowledgeContext =
+          knowledgeBase.length > 0
+            ? knowledgeBase.map((f) => `### ${f.name}\n${f.content}`).join("\n\n---\n\n")
+            : undefined;
+
+        // Create abort controller for cancellation
+        abortControllerRef.current = new AbortController();
+
+        const response = await fetch("/api/solver/stream", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            prompt: contextPrompt,
+            attachments,
+            systemPrompt: systemPrompt !== DEFAULT_SYSTEM_PROMPT ? systemPrompt : undefined,
+            knowledgeContext,
+          }),
+          signal: abortControllerRef.current.signal,
+        });
+
+        if (!response.ok) {
+          throw new Error("Failed to get response");
+        }
+
+        const reader = response.body?.getReader();
+        if (!reader) throw new Error("No reader available");
+
+        const decoder = new TextDecoder();
+        let fullContent = "";
+
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+
+          const chunk = decoder.decode(value, { stream: true });
+          fullContent += chunk;
+
+          setMessages((prev) =>
+            prev.map((msg) =>
+              msg.id === assistantMessageId ? { ...msg, content: fullContent } : msg,
+            ),
+          );
+        }
+
+        // Save completed assistant response to cloud
+        await addCloudMessage({
+          role: "assistant",
+          content: fullContent,
+        });
+
+        // Mark streaming as complete (local state)
+        setMessages((prev) =>
+          prev.map((msg) => (msg.id === assistantMessageId ? { ...msg, isStreaming: false } : msg)),
+        );
+      } catch (error) {
+        if ((error as Error).name === "AbortError") {
+          // User cancelled, remove the empty assistant message
+          setMessages((prev) => prev.filter((msg) => msg.id !== assistantMessageId));
+        } else {
+          setMessages((prev) =>
+            prev.map((msg) =>
+              msg.id === assistantMessageId
+                ? {
+                    ...msg,
+                    content: "Błąd podczas generowania odpowiedzi. Spróbuj ponownie.",
+                    isStreaming: false,
+                  }
+                : msg,
+            ),
+          );
+        }
+      } finally {
+        setIsSubmitting(false);
+        abortControllerRef.current = null;
+      }
+    },
+    [
+      inputText,
+      pendingFile,
+      pendingPreview,
+      isSubmitting,
+      messages,
+      systemPrompt,
+      knowledgeBase,
+      addCloudMessage,
+    ],
+  );
+
+  // File selection
+  const handleFileSelect = useCallback(
+    async (files: FileList | null) => {
+      if (!files || files.length === 0) return;
+      const file = files[0];
+      if (!file.type.startsWith("image/") && file.type !== "application/pdf") return;
+
+      setPendingFile(file);
+      if (file.type.startsWith("image/")) {
+        const reader = new FileReader();
+        reader.onload = () => {
+          setPendingPreview(reader.result as string);
+          // Trigger submit after a tiny delay for state to settle
+          setTimeout(() => handleSubmit(file, reader.result as string), 50);
+        };
+        reader.readAsDataURL(file);
+      } else {
+        setPendingPreview(null);
+        setTimeout(() => handleSubmit(file, undefined), 50);
+      }
+    },
+    [handleSubmit],
+  );
 
   return (
     <div className="fixed inset-0 flex flex-col bg-[var(--background)]">
@@ -647,7 +689,7 @@ export default function SolverPage() {
 
           {/* Send button */}
           <button
-            onClick={handleSubmit}
+            onClick={() => handleSubmit()}
             disabled={isSubmitting || (!inputText.trim() && !pendingFile)}
             className="flex-shrink-0 w-11 h-11 rounded-xl bg-[var(--primary)] text-[var(--background)] flex items-center justify-center transition-all hover:opacity-90 active:scale-95 disabled:opacity-30"
           >
