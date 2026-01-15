@@ -6,6 +6,7 @@ import { ThemeProvider } from "@/components/ThemeProvider";
 import { ThemeEffects } from "@/components/ThemeEffects";
 import { TutorProvider } from "@/context/TutorContext";
 import { TutorSidebar } from "@/components/TutorSidebar";
+import { UserSync } from "@/components/UserSync";
 
 const jetbrainsMono = JetBrains_Mono({
   variable: "--font-geist-mono",
@@ -27,6 +28,7 @@ export default function RootLayout({
     <html lang="pl">
       <body className={`${jetbrainsMono.variable} antialiased`}>
         <ConvexClientProvider>
+          <UserSync />
           <ThemeProvider>
             <TutorProvider>
               <ThemeEffects />

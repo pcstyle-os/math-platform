@@ -1,7 +1,14 @@
 
 import { v } from "convex/values";
-import { mutation, query } from "./_generated/server";
+import { mutation, query, internalMutation } from "./_generated/server";
 import { authKit } from "./auth";
+
+export const testSync = internalMutation({
+    args: { userId: v.string(), email: v.string() },
+    handler: async (ctx, args) => {
+        return await syncUserLogic(ctx, { id: args.userId, email: args.email });
+    },
+});
 
 export const LIMITS = {
     MEMBER: {
@@ -17,6 +24,80 @@ const getRole = (user: any) => {
     // For now we assume 'member' as default unless specified
     return user.metadata?.role || "member";
 };
+
+/**
+ * Internal logic for syncing user stats, used by mutation and webhooks.
+ */
+export async function syncUserLogic(ctx: any, user: { id: string, email: string, metadata?: any }) {
+    const role = getRole(user);
+    const now = Date.now();
+    const startOfMonth = new Date(now);
+    startOfMonth.setDate(1);
+    startOfMonth.setHours(0, 0, 0, 0);
+    const startOfMonthTs = startOfMonth.getTime();
+
+    const record = await ctx.db
+        .query("users")
+        .withIndex("by_user", (q: any) => q.eq("userId", user.id))
+        .first();
+
+    if (!record) {
+        await ctx.db.insert("users", {
+            userId: user.id,
+            email: user.email,
+            role,
+            theme: "minimalistic-warm",
+            xp: 0,
+            streak: 1,
+            lastLogin: now,
+            lastResetAt: startOfMonthTs,
+            monthlyGenerations: 0,
+            monthlyMessages: 0,
+            monthlyAudioSeconds: 0,
+        });
+        return { xp: 0, streak: 1, role };
+    }
+
+    const patch: any = { lastLogin: now, role, email: user.email };
+
+    // Monthly Reset
+    if ((record.lastResetAt || 0) < startOfMonthTs) {
+        patch.lastResetAt = startOfMonthTs;
+        patch.monthlyGenerations = 0;
+        patch.monthlyMessages = 0;
+        patch.monthlyAudioSeconds = 0;
+    }
+
+    // Streak logic
+    const lastLogin = record.lastLogin || 0;
+    const lastDate = new Date(lastLogin).toDateString();
+    const todayDate = new Date(now).toDateString();
+    const oneDayMs = 24 * 60 * 60 * 1000;
+    const yesterdayDate = new Date(now - oneDayMs).toDateString();
+
+    if (lastDate !== todayDate) {
+        let newStreak = record.streak || 1;
+        if (lastDate === yesterdayDate) {
+            newStreak++;
+        } else {
+            newStreak = 1;
+        }
+        patch.streak = newStreak;
+    }
+
+    await ctx.db.patch(record._id, patch);
+
+    return {
+        xp: record.xp || 0,
+        streak: patch.streak || record.streak || 1,
+        role,
+        usage: {
+            generations: patch.monthlyGenerations ?? record.monthlyGenerations ?? 0,
+            messages: patch.monthlyMessages ?? record.monthlyMessages ?? 0,
+            audioSeconds: patch.monthlyAudioSeconds ?? record.monthlyAudioSeconds ?? 0,
+        }
+    };
+}
 
 export const getSettings = query({
     args: {},
@@ -55,25 +136,19 @@ export const updateSettings = mutation({
                 ...(args.customizations && { customizations: args.customizations }),
             });
         } else {
-            const now = Date.now();
-            const startOfMonth = new Date(now);
-            startOfMonth.setDate(1);
-            startOfMonth.setHours(0, 0, 0, 0);
-
-            await ctx.db.insert("users", {
-                userId: user.id,
-                email: user.email,
-                role: getRole(user),
-                theme: args.theme || "minimalistic-warm",
-                customizations: args.customizations,
-                xp: 0,
-                streak: 1,
-                lastLogin: now,
-                lastResetAt: startOfMonth.getTime(),
-                monthlyGenerations: 0,
-                monthlyMessages: 0,
-                monthlyAudioSeconds: 0,
-            });
+            // If they don't have a record yet, create it with syncUserLogic
+            await syncUserLogic(ctx, { id: user.id, email: user.email, metadata: user.metadata });
+            // Then patch with theme
+            const updated = await ctx.db
+                .query("users")
+                .withIndex("by_user", (q) => q.eq("userId", user.id))
+                .first();
+            if (updated) {
+                await ctx.db.patch(updated._id, {
+                    ...(args.theme && { theme: args.theme }),
+                    ...(args.customizations && { customizations: args.customizations }),
+                });
+            }
         }
     },
 });
@@ -83,75 +158,7 @@ export const syncStats = mutation({
     handler: async (ctx) => {
         const user = await authKit.getAuthUser(ctx);
         if (!user) return null;
-
-        const role = getRole(user);
-        const now = Date.now();
-        const startOfMonth = new Date(now);
-        startOfMonth.setDate(1);
-        startOfMonth.setHours(0, 0, 0, 0);
-        const startOfMonthTs = startOfMonth.getTime();
-
-        const record = await ctx.db
-            .query("users")
-            .withIndex("by_user", (q) => q.eq("userId", user.id))
-            .first();
-
-        if (!record) {
-            await ctx.db.insert("users", {
-                userId: user.id,
-                email: user.email,
-                role,
-                theme: "minimalistic-warm",
-                xp: 0,
-                streak: 1,
-                lastLogin: now,
-                lastResetAt: startOfMonthTs,
-                monthlyGenerations: 0,
-                monthlyMessages: 0,
-                monthlyAudioSeconds: 0,
-            });
-            return { xp: 0, streak: 1, role };
-        }
-
-        const patch: any = { lastLogin: now, role, email: user.email };
-
-        // Monthly Reset
-        if ((record.lastResetAt || 0) < startOfMonthTs) {
-            patch.lastResetAt = startOfMonthTs;
-            patch.monthlyGenerations = 0;
-            patch.monthlyMessages = 0;
-            patch.monthlyAudioSeconds = 0;
-        }
-
-        // Streak logic
-        const lastLogin = record.lastLogin || 0;
-        const lastDate = new Date(lastLogin).toDateString();
-        const todayDate = new Date(now).toDateString();
-        const oneDayMs = 24 * 60 * 60 * 1000;
-        const yesterdayDate = new Date(now - oneDayMs).toDateString();
-
-        if (lastDate !== todayDate) {
-            let newStreak = record.streak || 1;
-            if (lastDate === yesterdayDate) {
-                newStreak++;
-            } else {
-                newStreak = 1;
-            }
-            patch.streak = newStreak;
-        }
-
-        await ctx.db.patch(record._id, patch);
-
-        return {
-            xp: record.xp || 0,
-            streak: patch.streak || record.streak || 1,
-            role,
-            usage: {
-                generations: patch.monthlyGenerations ?? record.monthlyGenerations ?? 0,
-                messages: patch.monthlyMessages ?? record.monthlyMessages ?? 0,
-                audioSeconds: patch.monthlyAudioSeconds ?? record.monthlyAudioSeconds ?? 0,
-            }
-        };
+        return await syncUserLogic(ctx, { id: user.id, email: user.email, metadata: user.metadata });
     },
 });
 

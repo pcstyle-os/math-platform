@@ -19,28 +19,23 @@ if (typeof window !== "undefined" && process.env.NODE_ENV === "development") {
 }
 
 function useWorkOSAuthBridge() {
-    const { user, loading } = useAuth();
-    const { getAccessToken, refresh } = useAccessToken();
+    const { user, loading: isLoading } = useAuth();
+    const { accessToken, loading: tokenLoading, error: tokenError } = useAccessToken();
+    const loading = (isLoading ?? false) || (tokenLoading ?? false);
+    const authenticated = !!user && !!accessToken && !loading;
 
-    const fetchAccessToken = useCallback(async ({ forceRefreshToken }: { forceRefreshToken: boolean }) => {
-        try {
-            if (forceRefreshToken) {
-                const token = await refresh();
-                return token || null;
-            }
-            const token = await getAccessToken();
-            return token || null;
-        } catch (e) {
-            console.error("Auth bridge error:", e);
-            return null;
+    const fetchAccessToken = useCallback(async () => {
+        if (accessToken && !tokenError) {
+            return accessToken;
         }
-    }, [getAccessToken, refresh]);
+        return null;
+    }, [accessToken, tokenError]);
 
     return useMemo(() => ({
         isLoading: loading,
-        isAuthenticated: !!user,
+        isAuthenticated: authenticated,
         fetchAccessToken,
-    }), [loading, user, fetchAccessToken]);
+    }), [loading, authenticated, fetchAccessToken]);
 }
 
 export function ConvexClientProvider({ children }: { children: ReactNode }) {
