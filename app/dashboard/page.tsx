@@ -68,15 +68,15 @@ export default function Dashboard() {
     return (
         <div className="flex flex-col min-h-screen">
             <Header />
-            <div className="max-w-6xl mx-auto px-8 py-20 w-full">
-                <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 mb-16">
+            <div className="max-w-6xl mx-auto px-4 sm:px-8 py-16 sm:py-20 w-full">
+                <div className="flex flex-col lg:flex-row justify-between items-start lg:items-end gap-6 mb-12 sm:mb-16">
                     <div>
                         <h1 className="text-5xl font-extrabold mb-3 tracking-tight text-[var(--foreground)]">{getLabel("projects")}</h1>
                         <p className="text-[var(--text-muted)] font-medium text-lg max-w-xl">
                             {isCyber ? "// Zarządzaj swoimi planami nauki" : "Twoja osobista biblioteka spersonalizowanych planów nauki."}
                         </p>
                     </div>
-                    <Link href="/create" className="btn-premium flex items-center gap-3 px-8 py-4">
+                    <Link href="/create" className="btn-premium flex items-center gap-3 px-6 sm:px-8 py-3.5 sm:py-4">
                         <Plus className="w-6 h-6" />
                         {getLabel("newPlan")}
                     </Link>

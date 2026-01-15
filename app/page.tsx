@@ -15,8 +15,8 @@ export default function LandingPage() {
       <Header />
 
       {/* Hero Section */}
-      <main className="flex-1 flex flex-col items-center justify-center px-8 relative overflow-hidden">
-        <div className="max-w-4xl w-full text-center space-y-10 relative z-10 py-20">
+      <main className="flex-1 flex flex-col items-center justify-center px-4 sm:px-8 relative overflow-hidden">
+        <div className="max-w-5xl w-full text-center space-y-8 sm:space-y-10 relative z-10 py-16 sm:py-20">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -31,7 +31,7 @@ export default function LandingPage() {
               {isCyber ? "NEXT_GEN_LEARNING_PROTOCOL" : "Nowoczesna nauka wspomagana AI"}
             </div>
 
-            <h1 className="text-6xl md:text-8xl font-extrabold tracking-tighter leading-none text-[var(--foreground)]">
+            <h1 className="text-4xl sm:text-6xl lg:text-7xl xl:text-8xl font-extrabold tracking-tighter leading-tight text-[var(--foreground)]">
               {isCyber ? (
                 <>GENERYCZNY_PLAN<br /><span className="text-[var(--primary)]">NAUKI_MATMY</span></>
               ) : (
@@ -39,7 +39,7 @@ export default function LandingPage() {
               )}
             </h1>
 
-            <p className="text-lg md:text-xl text-[var(--text-muted)] max-w-2xl mx-auto leading-relaxed font-medium">
+            <p className="text-base sm:text-lg md:text-xl text-[var(--text-muted)] max-w-2xl mx-auto leading-relaxed font-medium">
               {isCyber
                 ? "// Załaduj dane. Uruchom algorytmy. Osiągnij dominację intelektualną."
                 : "Prześlij swoje materiały w formacie PDF, a nasza sztuczna inteligencja przygotuje dla Ciebie spersonalizowaną ścieżkę nauki."}
@@ -50,13 +50,13 @@ export default function LandingPage() {
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ delay: 0.3, duration: 0.8 }}
-            className="flex flex-col sm:flex-row gap-6 justify-center pt-8"
+            className="flex flex-col sm:flex-row gap-4 sm:gap-6 justify-center pt-6 sm:pt-8"
           >
-            <Link href="/create" className="btn-premium flex items-center gap-3 text-lg px-10 py-5">
+            <Link href="/create" className="btn-premium flex items-center justify-center gap-3 text-base sm:text-lg px-8 sm:px-10 py-4 sm:py-5">
               <Sparkles className="w-6 h-6" />
               {getLabel("newPlan")}
             </Link>
-            <Link href="/dashboard" className={`flex items-center justify-center gap-3 px-10 py-5 text-lg font-bold transition-all ${isCyber
+            <Link href="/dashboard" className={`flex items-center justify-center gap-3 px-8 sm:px-10 py-4 sm:py-5 text-base sm:text-lg font-bold transition-all ${isCyber
               ? "border border-[var(--border)] text-[var(--text-muted)] hover:border-[var(--primary)] hover:text-[var(--primary)]"
               : "bg-[var(--foreground)] text-[var(--background)] hover:opacity-90 rounded-[var(--radius)]"
               }`}>
@@ -73,8 +73,8 @@ export default function LandingPage() {
       </main>
 
       {/* Features Preview */}
-      <section id="features" className="py-24 px-8 border-t border-[var(--border)] bg-[var(--surface)]/30">
-        <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-12">
+      <section id="features" className="py-20 sm:py-24 px-4 sm:px-8 border-t border-[var(--border)] bg-[var(--surface)]/30">
+        <div className="max-w-6xl mx-auto grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 lg:gap-12">
           {[
             {
               icon: Cpu,
