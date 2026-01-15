@@ -100,4 +100,47 @@ export default defineSchema({
     ),
     createdAt: v.number(),
   }).index("by_user", ["userId", "createdAt"]),
+
+  // Learning Engine: Challenges
+  challenges: defineTable({
+    slug: v.string(), // "center-the-div"
+    title: v.string(),
+    description: v.string(), // Markdown prompt
+    category: v.string(), // "css-basics", "flexbox", etc.
+    difficulty: v.number(), // 1-5
+    xpReward: v.number(),
+    starterCode: v.object({
+      html: v.string(),
+      css: v.string(),
+      js: v.optional(v.string()),
+    }),
+    validation: v.object({
+      type: v.string(), // "computed-style", "dom-check"
+      rules: v.array(
+        v.object({
+          selector: v.string(), // e.g., "#target"
+          property: v.string(), // e.g., "display"
+          expected: v.string(), // e.g., "flex"
+          hint: v.string(), // Hint on failure
+        }),
+      ),
+    }),
+    hints: v.array(v.string()), // Progressive hints
+    order: v.number(),
+  })
+    .index("by_slug", ["slug"])
+    .index("by_category", ["category"]),
+
+  // Learning Engine: User Progress
+  challengeProgress: defineTable({
+    userId: v.string(),
+    challengeId: v.id("challenges"),
+    status: v.union(v.literal("locked"), v.literal("unlocked"), v.literal("completed")),
+    attempts: v.number(),
+    hintsUsed: v.number(),
+    completedAt: v.optional(v.number()),
+    xpEarned: v.optional(v.number()),
+  })
+    .index("by_user", ["userId"])
+    .index("by_user_challenge", ["userId", "challengeId"]),
 });

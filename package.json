@@ -1,5 +1,5 @@
 {
-  "name": "math-platform",
+  "name": "learning-platform",
   "version": "0.0.1",
   "private": true,
   "scripts": {
@@ -24,6 +24,7 @@
   "dependencies": {
     "@convex-dev/workos-authkit": "^0.1.5",
     "@google/genai": "^1.36.0",
+    "@monaco-editor/react": "^4.7.0",
     "@workos-inc/authkit-nextjs": "^2.13.0",
     "canvas-confetti": "^1.9.4",
     "clsx": "^2.1.1",

@@ -39,13 +39,13 @@ export default function LandingPage() {
                 <>
                   GENERYCZNY_PLAN
                   <br />
-                  <span className="text-[var(--primary)]">NAUKI_MATMY</span>
+                  <span className="text-[var(--primary)]">NAUKI_AI</span>
                 </>
               ) : (
                 <>
                   Zapanuj nad
                   <br />
-                  <span className="text-[var(--primary)] text-glow">Matematyką</span>
+                  <span className="text-[var(--primary)] text-glow">Wiedzą</span>
                 </>
               )}
             </h1>
@@ -134,7 +134,7 @@ export default function LandingPage() {
         </div>
       </section>
       <footer className="py-10 border-t border-[var(--border)] text-center text-[var(--text-muted)] text-sm font-mono">
-        &lt;!-- © 2026 MATHPREP_AI // pcstyle --&gt;
+        &lt;!-- © 2026 LEARNING_PLATFORM // pcstyle --&gt;
       </footer>
     </div>
   );
