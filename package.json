@@ -24,7 +24,6 @@
   "dependencies": {
     "@convex-dev/workos-authkit": "^0.1.5",
     "@google/genai": "^1.36.0",
-    "@google/generative-ai": "^0.24.1",
     "@workos-inc/authkit-nextjs": "^2.13.0",
     "canvas-confetti": "^1.9.4",
     "clsx": "^2.1.1",
@@ -35,7 +34,6 @@
     "katex": "^0.16.27",
     "lucide-react": "^0.562.0",
     "next": "16.1.1",
-    "openssl": "^2.0.0",
     "react": "19.2.3",
     "react-dom": "19.2.3",
     "react-dropzone": "^14.3.8",
