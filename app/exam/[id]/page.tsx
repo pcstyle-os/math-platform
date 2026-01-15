@@ -2,7 +2,7 @@
 "use client";
 
 import { useQuery, useMutation } from "convex/react";
-import { api } from "../../../convex/_generated/api";
+import { api } from "@/convex/_generated/api";
 import { useParams, useRouter } from "next/navigation";
 import { useState, useMemo, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";

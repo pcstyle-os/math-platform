@@ -1,7 +1,7 @@
 "use client";
 
 import { useQuery } from "convex/react";
-import { api } from "../convex/_generated/api";
+import { api } from "@/convex/_generated/api";
 import { useEffect } from "react";
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {

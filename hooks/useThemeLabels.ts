@@ -2,7 +2,7 @@
 "use client";
 
 import { useQuery } from "convex/react";
-import { api } from "../convex/_generated/api";
+import { api } from "@/convex/_generated/api";
 
 export type ThemeType = "minimalistic-light" | "minimalistic-dark" | "minimalistic-warm" | "cybernetic-dark";
 

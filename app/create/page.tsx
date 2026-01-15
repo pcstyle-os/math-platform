@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useMutation, useAction } from "convex/react";
-import { api } from "../../convex/_generated/api";
+import { api } from "@/convex/_generated/api";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { Upload, X, Loader2, Sparkles, AlertCircle, FileText } from "lucide-react";

@@ -2,8 +2,8 @@
 "use client";
 
 import { useQuery, useMutation } from "convex/react";
-import { api } from "../../convex/_generated/api";
-import { Id } from "../../convex/_generated/dataModel";
+import { api } from "@/convex/_generated/api";
+import { Id } from "@/convex/_generated/dataModel";
 import { Plus, Clock, FileText, ArrowRight, Loader2, Flame, Trophy, AlertCircle } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState } from "react";

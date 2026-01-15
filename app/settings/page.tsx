@@ -3,7 +3,7 @@
 
 import { useState, useEffect } from "react";
 import { useQuery, useMutation } from "convex/react";
-import { api } from "../../convex/_generated/api";
+import { api } from "@/convex/_generated/api";
 import { Palette, Check, Loader2 } from "lucide-react";
 import { Header } from "@/components/Header";
 import { useThemeLabels } from "@/hooks/useThemeLabels";

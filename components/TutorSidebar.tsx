@@ -5,7 +5,7 @@ import { useTutor } from "@/context/TutorContext";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, Send, Brain, Sparkles, MessageSquare, Mic, Volume2 } from "lucide-react";
 import { useAction, useQuery, useMutation } from "convex/react";
-import { api } from "../convex/_generated/api";
+import { api } from "@/convex/_generated/api";
 import { MathContent } from "@/components/MathContent";
 
 import { useGeminiLive } from "@/hooks/useGeminiLive";
