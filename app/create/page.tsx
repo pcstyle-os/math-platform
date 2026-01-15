@@ -105,13 +105,26 @@ export default function CreateExam() {
             });
 
             router.push("/dashboard");
-        } catch (e) {
+        } catch (e: unknown) {
             console.error("[Create] Szczegóły błędu:", e);
+
+            // Extract error message from various error types
+            let errorMessage = "Wystąpił nieznany błąd.";
+
             if (e instanceof TypeError && e.message === "Failed to fetch") {
-                setError("BŁĄD POŁĄCZENIA: Nie można połączyć się z serwerem Convex. Sprawdź połączenie z internetem lub czy npx convex dev jest uruchomiony.");
-            } else {
-                setError(e instanceof Error ? e.message : "Wystąpił błąd podczas przesyłania plików.");
+                errorMessage = "BŁĄD POŁĄCZENIA: Nie można połączyć się z serwerem Convex.";
+            } else if (e instanceof Error) {
+                // Convex errors often have the actual message in .message
+                // but sometimes it's wrapped, so we clean it up
+                errorMessage = e.message
+                    .replace(/^Uncaught Error: /, "")
+                    .replace(/^\[CONVEX [^\]]+\] /, "");
+            } else if (typeof e === "object" && e !== null && "data" in e) {
+                // Some Convex errors have a data property with the message
+                errorMessage = String((e as { data: unknown }).data);
             }
+
+            setError(errorMessage);
             setIsUploading(false);
         }
     };
