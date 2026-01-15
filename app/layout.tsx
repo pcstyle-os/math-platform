@@ -46,7 +46,9 @@ export default function RootLayout({
               <ServiceWorkerRegistrar />
               <PWAUpdateToast />
               <HomepageRedirect />
-              <div className="relative z-10">{children}</div>
+              <main id="main-content" className="relative z-10 focus:outline-none">
+                {children}
+              </main>
               <TutorSidebar />
             </TutorProvider>
           </ThemeProvider>

@@ -195,7 +195,14 @@ async function main() {
 
   const jsonPath = resolve(process.cwd(), jsonPathArg);
   const rawText = await readFile(jsonPath, "utf8");
-  const parsed: unknown = JSON.parse(rawText);
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(rawText);
+  } catch (e) {
+    console.error("Failed to parse JSON course file. Check for syntax errors.");
+    process.exitCode = 1;
+    return;
+  }
 
   const root = requireRecord(parsed, "JSON root");
 
