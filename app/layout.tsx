@@ -7,6 +7,7 @@ import { ThemeEffects } from "@/components/ThemeEffects";
 import { TutorProvider } from "@/context/TutorContext";
 import { TutorSidebar } from "@/components/TutorSidebar";
 import { UserSync } from "@/components/UserSync";
+import { ServiceWorkerRegistrar } from "@/components/ServiceWorkerRegistrar";
 
 const jetbrainsMono = JetBrains_Mono({
   variable: "--font-geist-mono",
@@ -17,6 +18,12 @@ const jetbrainsMono = JetBrains_Mono({
 export const metadata: Metadata = {
   title: "MATHPREP_AI // PCSTYLE",
   description: "Generuj rozbudowane plany nauki matematyki z pomocą AI.",
+  manifest: "/manifest.webmanifest",
+  themeColor: "#000000",
+  icons: {
+    icon: "/pwa-icon.svg",
+    apple: "/pwa-icon.svg",
+  },
 };
 
 export default function RootLayout({
@@ -32,6 +39,7 @@ export default function RootLayout({
           <ThemeProvider>
             <TutorProvider>
               <ThemeEffects />
+              <ServiceWorkerRegistrar />
               <div className="relative z-10">{children}</div>
               <TutorSidebar />
             </TutorProvider>
@@ -41,4 +49,3 @@ export default function RootLayout({
     </html>
   );
 }
-
