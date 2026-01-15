@@ -8,15 +8,17 @@ interface CodePreviewProps {
   js?: string;
 }
 
-export const CodePreview: React.FC<CodePreviewProps> = ({ html, css, js }) => {
-  const iframeRef = useRef<HTMLIFrameElement>(null);
+export const CodePreview = React.forwardRef<HTMLIFrameElement, CodePreviewProps>(
+  ({ html, css, js }, ref) => {
+    const internalRef = useRef<HTMLIFrameElement>(null);
+    const iframeRef = (ref as React.RefObject<HTMLIFrameElement>) || internalRef;
 
-  useEffect(() => {
-    const updateIframe = () => {
-      const iframe = iframeRef.current;
-      if (!iframe) return;
+    useEffect(() => {
+      const updateIframe = () => {
+        const iframe = iframeRef.current;
+        if (!iframe) return;
 
-      const combinedCode = `
+        const combinedCode = `
         <!DOCTYPE html>
         <html>
           <head>
@@ -46,26 +48,29 @@ export const CodePreview: React.FC<CodePreviewProps> = ({ html, css, js }) => {
         </html>
       `;
 
-      iframe.srcdoc = combinedCode;
-    };
+        iframe.srcdoc = combinedCode;
+      };
 
-    const timeoutId = setTimeout(updateIframe, 300); // Debounce
-    return () => clearTimeout(timeoutId);
-  }, [html, css, js]);
+      const timeoutId = setTimeout(updateIframe, 300); // Debounce
+      return () => clearTimeout(timeoutId);
+    }, [html, css, js, iframeRef]);
 
-  return (
-    <div className="w-full h-full glass border border-white/10 rounded-xl overflow-hidden relative">
-      <div className="absolute top-0 left-0 right-0 h-8 bg-black/20 flex items-center px-4 border-b border-white/5 z-10">
-        <span className="text-[10px] uppercase tracking-wider text-muted-foreground font-mono">
-          Live Preview
-        </span>
+    return (
+      <div className="w-full h-full glass border border-white/10 rounded-xl overflow-hidden relative">
+        <div className="absolute top-0 left-0 right-0 h-8 bg-black/20 flex items-center px-4 border-b border-white/5 z-10">
+          <span className="text-[10px] uppercase tracking-wider text-muted-foreground font-mono">
+            Live Preview
+          </span>
+        </div>
+        <iframe
+          ref={iframeRef}
+          title="Live Code Challenge Preview"
+          className="w-full h-full border-none pt-8"
+          sandbox="allow-scripts allow-popups"
+        />
       </div>
-      <iframe
-        ref={iframeRef}
-        title="Live Code Challenge Preview"
-        className="w-full h-full border-none pt-8"
-        sandbox="allow-scripts allow-popups"
-      />
-    </div>
-  );
-};
+    );
+  },
+);
+
+CodePreview.displayName = "CodePreview";

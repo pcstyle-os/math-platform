@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useParams } from "next/navigation";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
@@ -21,8 +21,10 @@ export default function ChallengePage() {
   const [files, setFiles] = useState({ html: "", css: "", js: "" });
   const [activeTab, setActiveTab] = useState<"html" | "css" | "js">("html");
   const [validationStatus, setValidationStatus] = useState<"idle" | "success" | "failure">("idle");
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [feedbackMessage, setFeedbackMessage] = useState("");
   const { validate } = useChallengeValidation();
+  const iframeRef = useRef<HTMLIFrameElement>(null);
 
   useEffect(() => {
     if (challenge) {
@@ -46,10 +48,12 @@ export default function ChallengePage() {
   };
 
   const handleSubmit = async () => {
-    const iframe = document.querySelector("iframe") as HTMLIFrameElement;
-    if (!challenge) return;
+    if (!challenge || isSubmitting) return;
 
-    const result = validate(iframe, challenge.validation.rules);
+    setIsSubmitting(true);
+    setValidationStatus("idle");
+
+    const result = validate(iframeRef.current, challenge.validation.rules);
 
     if (result.passed) {
       setValidationStatus("success");
@@ -59,6 +63,7 @@ export default function ChallengePage() {
       if (!userId) {
         setFeedbackMessage("You must be logged in to save progress.");
         setValidationStatus("failure");
+        setIsSubmitting(false); // Ensure submitting state is reset
         return;
       }
 
@@ -66,9 +71,12 @@ export default function ChallengePage() {
         userId,
         challengeId: challenge._id,
       });
+
+      setIsSubmitting(false);
     } else {
       setValidationStatus("failure");
-      setFeedbackMessage(result.failedRule?.hint || "Something is not right.");
+      setFeedbackMessage(result.failedRule?.hint || "Something isn't quite right. Try again!");
+      setIsSubmitting(false);
     }
   };
 
@@ -106,7 +114,7 @@ export default function ChallengePage() {
           />
         </div>
         <div className="h-[300px]">
-          <CodePreview html={files.html} css={files.css} js={files.js} />
+          <CodePreview ref={iframeRef} html={files.html} css={files.css} js={files.js} />
         </div>
       </div>
 

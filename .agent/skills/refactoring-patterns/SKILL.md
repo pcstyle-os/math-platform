@@ -10,4 +10,4 @@ Apply common refactoring patterns (Extract Method, Rename, Move, Inline).
 - **Rename**: Use clear, intention-revealing names for variables and functions.
 - **Move**: Shift classes or functions to more appropriate modules to improve cohesion.
 - **Inline**: If a function/variable is simple and used only once, inline it to reduce complexity.
-- Always run tests after每一refactoring step.
+- Always run tests after each refactoring step.

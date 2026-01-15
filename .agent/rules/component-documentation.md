@@ -14,6 +14,8 @@ description: Ensure all components are well-documented.
    * Renders a mathematical formula using KaTeX.
    * @param {string} formula - The LaTeX formula string.
    * @param {boolean} block - Whether to render as a display block.
+   * @example
+   * <MathRenderer formula="E=mc^2" block />
    */
   export const MathRenderer = ({ formula, block }: MathProps) => { ... }
   ```

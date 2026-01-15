@@ -97,9 +97,11 @@ export const complete = mutation({
       )
       .unique();
 
+    let xpAwarded = false;
     const xpReward = challenge.xpReward;
 
     if (progress) {
+      // If already completed, don't award XP again
       if (progress.status !== "completed") {
         await ctx.db.patch(progress._id, {
           status: "completed",
@@ -111,8 +113,10 @@ export const complete = mutation({
         await ctx.db.patch(user._id, {
           xp: (user.xp ?? 0) + xpReward,
         });
+        xpAwarded = true;
       }
     } else {
+      // New completion
       await ctx.db.insert("challengeProgress", {
         userId: args.userId,
         challengeId: args.challengeId,
@@ -126,9 +130,18 @@ export const complete = mutation({
       await ctx.db.patch(user._id, {
         xp: (user.xp ?? 0) + xpReward,
       });
+      xpAwarded = true;
     }
 
-    return { success: true, newXp: (user.xp ?? 0) + xpReward };
+    const currentXp = user.xp ?? 0;
+    const finalXp = xpAwarded ? currentXp + xpReward : currentXp;
+
+    return {
+      success: true,
+      xpAwarded,
+      xpEarned: xpAwarded ? xpReward : 0,
+      newXp: finalXp,
+    };
   },
 });
 

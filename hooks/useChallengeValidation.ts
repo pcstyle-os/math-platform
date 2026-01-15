@@ -60,11 +60,19 @@ export const useChallengeValidation = () => {
           } else if (normalizedExpected.endsWith("vh")) {
             expectedPx = (expectedNum * win.innerHeight) / 100;
           } else if (normalizedExpected.endsWith("%")) {
+            // Context-aware parent dimension lookup
+            const propertyCategory = ["width", "max-width", "min-width"].includes(kebabProperty)
+              ? "width"
+              : ["height", "max-height", "min-height"].includes(kebabProperty)
+                ? "height"
+                : "font-size"; // Default to font-size for other % properties
+
             const parent = element.parentElement || doc.body;
             const parentStyle = win.getComputedStyle(parent);
-            const parentDim = parseFloat(
-              parentStyle.getPropertyValue(kebabProperty === "width" ? "width" : "height"),
+            const parentValue = parentStyle.getPropertyValue(
+              propertyCategory === "font-size" ? "font-size" : propertyCategory,
             );
+            const parentDim = parseFloat(parentValue);
             expectedPx = (expectedNum * parentDim) / 100;
           }
 
