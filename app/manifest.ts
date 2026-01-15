@@ -2,13 +2,15 @@ import type { MetadataRoute } from "next";
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: "MathPrep AI",
-    short_name: "MathPrep",
-    description: "Generuj rozbudowane plany nauki matematyki z pomocą AI.",
-    start_url: "/",
+    name: "MathPrep AI - Szybki Solver",
+    short_name: "Solver",
+    description: "Błyskawiczny solver zadań matematycznych z AI. Zrób zdjęcie - dostań odpowiedź.",
+    start_url: "/solver",
     display: "standalone",
+    orientation: "portrait",
     background_color: "#000000",
     theme_color: "#ff00ff",
+    categories: ["education", "utilities"],
     icons: [
       {
         src: "/pwa-icon.svg",
@@ -23,5 +25,30 @@ export default function manifest(): MetadataRoute.Manifest {
         purpose: "maskable",
       },
     ],
+    screenshots: [
+      {
+        src: "/screenshots/solver-mobile.png",
+        sizes: "390x844",
+        type: "image/png",
+      },
+    ],
+    shortcuts: [
+      {
+        name: "Solver",
+        short_name: "Solve",
+        description: "Szybki solver zadań",
+        url: "/solver",
+        icons: [{ src: "/pwa-icon.svg", sizes: "any" }],
+      },
+      {
+        name: "Dashboard",
+        short_name: "Home",
+        description: "Panel główny",
+        url: "/dashboard",
+        icons: [{ src: "/pwa-icon.svg", sizes: "any" }],
+      },
+    ],
+    related_applications: [],
+    prefer_related_applications: false,
   };
 }

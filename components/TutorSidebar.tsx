@@ -14,8 +14,23 @@ export function TutorSidebar() {
   const { isOpen, setIsOpen, messages, addMessage, currentContext } = useTutor();
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [isHidden, setIsHidden] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
   const askQuestion = useAction(api.chat.askQuestion);
+
+  // Check if we should hide the sidebar (e.g., on solver page)
+  useEffect(() => {
+    const checkHidden = () => {
+      setIsHidden(document.body.hasAttribute("data-hide-tutor"));
+    };
+    checkHidden();
+
+    // Use MutationObserver to watch for attribute changes
+    const observer = new MutationObserver(checkHidden);
+    observer.observe(document.body, { attributes: true, attributeFilter: ["data-hide-tutor"] });
+
+    return () => observer.disconnect();
+  }, []);
 
   // Voice Mode
   const incrementUsage = useMutation(api.users.incrementUsage);
@@ -93,6 +108,9 @@ export function TutorSidebar() {
       await startVoice(key);
     }
   };
+
+  // Don't render if hidden (e.g., on solver page)
+  if (isHidden) return null;
 
   return (
     <>

@@ -8,6 +8,7 @@ import { TutorProvider } from "@/context/TutorContext";
 import { TutorSidebar } from "@/components/TutorSidebar";
 import { UserSync } from "@/components/UserSync";
 import { ServiceWorkerRegistrar } from "@/components/ServiceWorkerRegistrar";
+import { HomepageRedirect } from "@/components/HomepageRedirect";
 
 const jetbrainsMono = JetBrains_Mono({
   variable: "--font-geist-mono",
@@ -40,6 +41,7 @@ export default function RootLayout({
             <TutorProvider>
               <ThemeEffects />
               <ServiceWorkerRegistrar />
+              <HomepageRedirect />
               <div className="relative z-10">{children}</div>
               <TutorSidebar />
             </TutorProvider>

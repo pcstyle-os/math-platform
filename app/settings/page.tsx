@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
-import { Palette, Check, Loader2 } from "lucide-react";
+import { Palette, Check, Loader2, Zap, Home } from "lucide-react";
 import { Header } from "@/components/Header";
 import { useThemeLabels } from "@/hooks/useThemeLabels";
 
@@ -39,6 +39,7 @@ export default function SettingsPage() {
   const updateSettings = useMutation(api.users.updateSettings);
   const [selectedTheme, setSelectedTheme] = useState("minimalistic-light");
   const [isSaving, setIsSaving] = useState(false);
+  const [solverAsHomepage, setSolverAsHomepage] = useState(false);
   const { getLabel, isCyber } = useThemeLabels();
 
   useEffect(() => {
@@ -46,6 +47,12 @@ export default function SettingsPage() {
       setSelectedTheme(userSettings.theme);
     }
   }, [userSettings]);
+
+  // Load solver homepage preference from localStorage
+  useEffect(() => {
+    const saved = localStorage.getItem("solver-default-homepage");
+    setSolverAsHomepage(saved === "true");
+  }, []);
 
   const handleThemeChange = async (themeId: string) => {
     setSelectedTheme(themeId);
@@ -58,6 +65,12 @@ export default function SettingsPage() {
     } finally {
       setIsSaving(false);
     }
+  };
+
+  const toggleSolverHomepage = () => {
+    const newValue = !solverAsHomepage;
+    setSolverAsHomepage(newValue);
+    localStorage.setItem("solver-default-homepage", String(newValue));
   };
 
   return (
@@ -75,6 +88,50 @@ export default function SettingsPage() {
           </p>
         </div>
 
+        {/* Solver Homepage Setting */}
+        <div className="card-premium mb-8">
+          <div className="flex items-center gap-4 mb-6">
+            <div
+              className={`p-3 ${isCyber ? "border border-[var(--primary)] text-[var(--primary)]" : "bg-[var(--primary)] text-white rounded-xl"}`}
+            >
+              <Zap className="w-6 h-6" />
+            </div>
+            <div className="flex-1">
+              <h2 className="text-xl font-bold">{isCyber ? "SOLVER_DOMYŚLNY" : "Szybki Solver"}</h2>
+              <p className="text-sm text-[var(--text-muted)] font-medium">
+                {isCyber
+                  ? "// Ustaw Solver jako stronę startową"
+                  : "Otwieraj Solver zamiast pulpitu po wejściu do aplikacji."}
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-center justify-between p-4 bg-[var(--background)] rounded-xl border border-[var(--border)]">
+            <div className="flex items-center gap-3">
+              <Home className="w-5 h-5 text-[var(--text-muted)]" />
+              <div>
+                <p className="font-medium text-sm">Solver jako strona główna</p>
+                <p className="text-xs text-[var(--text-muted)]">
+                  Automatycznie otwieraj Solver po wejściu na stronę
+                </p>
+              </div>
+            </div>
+            <button
+              onClick={toggleSolverHomepage}
+              className={`w-12 h-6 rounded-full transition-all duration-200 ${
+                solverAsHomepage ? "bg-[var(--primary)]" : "bg-[var(--border)]"
+              }`}
+            >
+              <div
+                className={`w-5 h-5 bg-white rounded-full shadow-md transition-transform duration-200 ${
+                  solverAsHomepage ? "translate-x-6" : "translate-x-0.5"
+                }`}
+              />
+            </button>
+          </div>
+        </div>
+
+        {/* Theme Settings */}
         <div className="card-premium">
           <div className="flex items-center gap-4 mb-10">
             <div
