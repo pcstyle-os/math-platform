@@ -86,11 +86,12 @@ export const Header = () => {
         <div className="hidden md:flex items-center gap-8 text-[var(--foreground)] font-medium">
           <div className="flex items-center gap-6">
             <Link
-              href="/dashboard"
+              href="/learn"
               className="hover:text-[var(--primary)] transition-colors text-sm font-semibold"
             >
-              {getLabel("dashboard")}
+              Learn
             </Link>
+            <Link href="/dashboard">{getLabel("dashboard")}</Link>
             <Link
               href="/solver"
               className="hover:text-[var(--primary)] transition-colors text-sm font-semibold"
@@ -114,6 +115,13 @@ export const Header = () => {
       {isMenuOpen && (
         <div className="md:hidden mt-6 space-y-6 rounded-[var(--radius)] border border-[var(--border)] bg-[var(--surface)] p-6">
           <div className="flex flex-col gap-4 text-sm font-semibold">
+            <Link
+              href="/learn"
+              className="hover:text-[var(--primary)] transition-colors"
+              onClick={() => setIsMenuOpen(false)}
+            >
+              Learn
+            </Link>
             <Link
               href="/dashboard"
               className="hover:text-[var(--primary)] transition-colors"
