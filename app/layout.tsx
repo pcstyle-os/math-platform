@@ -18,8 +18,8 @@ const jetbrainsMono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "MATHPREP_AI // PCSTYLE",
-  description: "Generuj rozbudowane plany nauki matematyki z pomocą AI.",
+  title: "LEARNING_PLATFORM // PCSTYLE",
+  description: "Generuj rozbudowane plany nauki z pomocą AI.",
   manifest: "/manifest.webmanifest",
   themeColor: "#000000",
   icons: {

@@ -2,9 +2,9 @@ import type { MetadataRoute } from "next";
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: "MathPrep AI - Szybki Solver",
-    short_name: "Solver",
-    description: "Błyskawiczny solver zadań matematycznych z AI. Zrób zdjęcie - dostań odpowiedź.",
+    name: "Learning Platform AI",
+    short_name: "Learning",
+    description: "Błyskawiczny asystent nauki z AI. Zrób zdjęcie - dostań odpowiedź.",
     start_url: "/solver",
     display: "standalone",
     orientation: "portrait",

@@ -78,8 +78,8 @@ export const Header = () => {
             />
           </div>
           <span className="text-xl sm:text-2xl font-bold tracking-tight">
-            <span className="text-[var(--primary)]">Math</span>
-            <span className="text-[var(--foreground)]">Prep</span>
+            <span className="text-[var(--primary)]">Learning</span>
+            <span className="text-[var(--foreground)]">Platform</span>
           </span>
         </Link>
 
