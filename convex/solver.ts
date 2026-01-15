@@ -3,6 +3,7 @@ import { action } from "./_generated/server";
 import { GoogleGenAI, createPartFromBase64, createPartFromText } from "@google/genai";
 import { authKit } from "./auth";
 import { api } from "./_generated/api";
+import { LIMITS } from "./users";
 
 export const solveExercise = action({
   args: {
@@ -25,8 +26,8 @@ export const solveExercise = action({
     const role = userDetails?.role || "member";
 
     if (role === "member" && userDetails) {
-      if ((userDetails.monthlyMessages || 0) >= 100) {
-        return "Osiągnięto limit 100 wiadomości w tym miesiącu. Przejdź na Premium po nielimitowany dostęp!";
+      if ((userDetails.monthlyMessages || 0) >= LIMITS.MEMBER.MONTHLY_MESSAGES) {
+        return `Osiągnięto limit ${LIMITS.MEMBER.MONTHLY_MESSAGES} wiadomości w tym miesiącu. Przejdź na Premium po nielimitowany dostęp!`;
       }
     }
 
@@ -35,31 +36,30 @@ export const solveExercise = action({
 
     const ai = new GoogleGenAI({ apiKey });
 
-    const parts = [
-      createPartFromText(
-        `Jesteś szybkim solverem zadań matematycznych. Analizuj obrazy, PDF i tekst.
-ZASADY:
-1. Zwracaj wynik w Markdown + LaTeX ($...$ i $$...$$).
-2. Odpowiedź ma być krótka i konkretna: wynik + kluczowe kroki.
-3. Bez emoji.
-4. Jeśli brakuje danych, krótko napisz czego brakuje.`,
-      ),
-    ];
+    const parts = [];
 
     if (args.prompt) {
-      parts.push(createPartFromText(`Treść użytkownika: ${args.prompt}`));
+      parts.push(createPartFromText(args.prompt));
     }
 
     if (args.attachments) {
       args.attachments.forEach((attachment) => {
-        parts.push(createPartFromText(`Załącznik: ${attachment.name}`));
+        parts.push(createPartFromText(`Plik: ${attachment.name}`));
         parts.push(createPartFromBase64(attachment.data, attachment.mimeType));
       });
     }
 
     const response = await ai.models.generateContent({
-      model: "gemini-3-flash-preview",
+      model: "gemini-3-pro-preview",
       contents: [{ role: "user", parts }],
+      config: {
+        systemInstruction: `Jesteś szybkim i dokładnym solverem zadań matematycznych. Analizuj obrazy, PDF i tekst.
+ZASADY:
+1. Zwracaj wynik w Markdown + LaTeX ($...$ i $$...$$).
+2. Odpowiedź ma być konkretna: wynik + kluczowe kroki rozwiązania.
+3. Bez emoji.
+4. Jeśli brakuje danych lub obraz jest nieczytelny, krótko napisz czego brakuje.`,
+      },
     });
 
     if (role === "member" && userDetails) {
