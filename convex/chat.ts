@@ -16,7 +16,9 @@ export const askQuestion = action({
 
         // Check limits
         const userDetails = await ctx.runQuery(api.users.getUserDetails);
-        if (userDetails && userDetails.role === "member") {
+        const role = userDetails?.role || "member";
+
+        if (role === "member" && userDetails) {
             if ((userDetails.monthlyMessages || 0) >= 100) {
                 return "Osiągnięto limit 100 wiadomości w tym miesiącu. Przejdź na Premium po nielimitowany dostęp!";
             }
@@ -60,7 +62,7 @@ ${args.context}
         });
 
         // Increment usage for members
-        if (userDetails && userDetails.role === "member") {
+        if (role === "member" && userDetails) {
             await ctx.runMutation(api.users.incrementUsage, { type: "messages" });
         }
 
@@ -80,7 +82,9 @@ export const explainTheory = action({
 
         // Check limits
         const userDetails = await ctx.runQuery(api.users.getUserDetails);
-        if (userDetails && userDetails.role === "member") {
+        const role = userDetails?.role || "member";
+
+        if (role === "member" && userDetails) {
             if ((userDetails.monthlyMessages || 0) >= 100) {
                 return "Osiągnięto limit 100 wiadomości w tym miesiącu. Przejdź na Premium po nielimitowany dostęp!";
             }
@@ -113,7 +117,7 @@ WYMAGANIA:
         });
 
         // Increment usage for members
-        if (userDetails && userDetails.role === "member") {
+        if (role === "member" && userDetails) {
             await ctx.runMutation(api.users.incrementUsage, { type: "messages" });
         }
 

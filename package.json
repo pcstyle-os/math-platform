@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "bunx convex dev --once & next dev",
-    "build": "next build",
+    "build": "bunx convex codegen && next build",
     "start": "next start",
     "lint": "eslint",
     "db:clear": "bunx convex run admin:clearAll",

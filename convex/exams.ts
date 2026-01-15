@@ -180,11 +180,13 @@ export const storeFile = action({
     handler: async (ctx, args) => {
         const user = await authKit.getAuthUser(ctx);
         if (!user) throw new Error("Unauthorized");
-        return await ctx.storage.store(new Blob([args.file], { type: args.contentType }));
+        // Convert bytes to Blob for storage.store
+        const blob = new Blob([args.file], { type: args.contentType });
+        return await ctx.storage.store(blob);
     },
 });
 
-// --- AI Action ---
+// --- Actions & Misc ---
 
 export const renameExam = mutation({
     args: { id: v.id("exams"), title: v.string() },
@@ -205,8 +207,6 @@ export const deleteExam = mutation({
         if (!exam || !user || exam.userId !== user.id) throw new Error("Unauthorized");
 
         await ctx.db.delete(args.id);
-        // Note: We are not deleting the storage files here to keep it simple, 
-        // but in production you might want to clean them up.
     },
 });
 
