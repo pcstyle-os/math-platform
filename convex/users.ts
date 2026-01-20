@@ -6,7 +6,7 @@ const mockUser = {
     role: "premium" as const,
     monthlyMessages: 0,
     monthlyAudioSeconds: 0,
-    theme: "cybernetic-dark",
+    theme: "minimalistic-warm",
     solverDefaultHomepage: false,
     solverKnowledgeBase: [] as any[],
     solverSystemPrompt: "",
@@ -44,7 +44,7 @@ export const getSettings = query({
     args: {},
     handler: async (ctx) => {
         return {
-            theme: "cybernetic-dark",
+            theme: "minimalistic-warm",
             solverDefaultHomepage: false,
             solverKnowledgeBase: "",
             solverSystemPrompt: "",
