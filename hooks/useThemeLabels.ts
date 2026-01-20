@@ -11,7 +11,7 @@ export type ThemeType =
 
 export function useThemeLabels() {
   const settings = useQuery(api.users.getSettings);
-  const currentTheme = settings?.theme || "minimalistic-light";
+  const currentTheme = settings?.theme || "minimalistic-warm";
   const isCyber = currentTheme === "cybernetic-dark";
 
   const getLabel = (key: keyof typeof labels) => {
