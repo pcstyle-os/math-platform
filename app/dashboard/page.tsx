@@ -20,6 +20,7 @@ import { pl } from "date-fns/locale";
 
 import { Header } from "@/components/Header";
 import { useThemeLabels } from "@/hooks/useThemeLabels";
+import { ThemeDropdown } from "@/components/ThemeDropdown";
 
 export default function Dashboard() {
   const exams = useQuery(api.exams.getExams);
@@ -88,13 +89,16 @@ export default function Dashboard() {
                 : "Twoja osobista biblioteka spersonalizowanych planów nauki."}
             </p>
           </div>
-          <Link
-            href="/create"
-            className="btn-premium flex items-center gap-3 px-6 sm:px-8 py-3.5 sm:py-4"
-          >
-            <Plus className="w-6 h-6" />
-            {getLabel("newPlan")}
-          </Link>
+          <div className="flex items-center gap-4">
+            <ThemeDropdown />
+            <Link
+              href="/create"
+              className="btn-premium flex items-center gap-3 px-6 sm:px-8 py-3.5 sm:py-4"
+            >
+              <Plus className="w-6 h-6" />
+              {getLabel("newPlan")}
+            </Link>
+          </div>
         </div>
 
         {/* Stats & Limits Overview */}
