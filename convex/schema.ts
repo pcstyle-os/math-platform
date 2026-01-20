@@ -73,6 +73,7 @@ export default defineSchema({
     // Solver Specific Settings (moved from localStorage to DB)
     solverSystemPrompt: v.optional(v.string()),
     solverDefaultHomepage: v.optional(v.boolean()),
+    prefersSystemTheme: v.optional(v.boolean()),
     solverKnowledgeBase: v.optional(
       v.array(
         v.object({
