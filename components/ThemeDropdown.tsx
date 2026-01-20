@@ -32,13 +32,23 @@ const themes = [
 export function ThemeDropdown() {
   const userSettings = useQuery(api.users.getUserDetails);
   const updateSettings = useMutation(api.users.updateSettings);
-  const [selectedTheme, setSelectedTheme] = useState("minimalistic-warm");
+  
+  // Initialize from localStorage if available, fallback to creamy
+  const [selectedTheme, setSelectedTheme] = useState(() => {
+    if (typeof window !== "undefined") {
+      return localStorage.getItem("app-theme") || "minimalistic-warm";
+    }
+    return "minimalistic-warm";
+  });
+
   const [isOpen, setIsOpen] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const { isCyber } = useThemeLabels();
 
   useEffect(() => {
-    if (userSettings?.theme) {
+    // Only sync from DB if localStorage is empty OR if we want DB to be source of truth (not for public mode)
+    // For now, let's just use localStorage as primary and sync to it
+    if (userSettings?.theme && !localStorage.getItem("app-theme")) {
       setSelectedTheme(userSettings.theme);
     }
   }, [userSettings]);

@@ -11,14 +11,19 @@ export type ThemeType =
 
 export function useThemeLabels() {
   const settings = useQuery(api.users.getSettings);
-  const currentTheme = settings?.theme || "minimalistic-warm";
-  const isCyber = currentTheme === "cybernetic-dark";
+  
+  // Try to get from localStorage first for instant feedback/persistence, fall back to DB or default
+  const effectiveTheme = (typeof window !== "undefined" ? localStorage.getItem("app-theme") : null) 
+    || settings?.theme 
+    || "minimalistic-warm";
+
+  const isCyber = effectiveTheme === "cybernetic-dark";
 
   const getLabel = (key: keyof typeof labels) => {
     return isCyber ? labels[key].cyber : labels[key].normal;
   };
 
-  return { getLabel, isCyber, currentTheme };
+  return { getLabel, isCyber, currentTheme: effectiveTheme };
 }
 
 const labels = {
