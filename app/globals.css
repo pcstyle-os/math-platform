@@ -6,23 +6,20 @@
 /* Paper Theme (Default) */
 /* Minimalistic System (Default) -> Paper */
 :root {
-  --background: #fbfaf5;
-  --foreground: #2d2a2e;
-  --primary: #d97757;
-  /* Deep terracotta */
-  --secondary: #8b8076;
-  --surface: rgba(255, 255, 255, 0.7);
-  /* Slightly more opaque for better readability */
-  --border: rgba(45, 42, 46, 0.1);
-  --border-hover: #d97757;
-  --glow: rgba(217, 119, 87, 0.1);
-  --text-muted: #8c857d;
-  --radius: 0.75rem;
-  /* Slightly tighter radius for "compact" feel */
-  --font-family: var(--font-geist-sans), "Georgia", serif;
-  --text-transform: none;
-  --letter-spacing: -0.01em;
-  --display-effects: none;
+  --background: #000000;
+  --foreground: #e0e0e0;
+  --primary: #ff00ff;
+  --secondary: #00ffff;
+  --surface: rgba(20, 20, 20, 0.8);
+  --border: rgba(255, 0, 255, 0.3);
+  --border-hover: #ff00ff;
+  --glow: rgba(255, 0, 255, 0.3);
+  --text-muted: #6b7280;
+  --radius: 0px;
+  --font-family: var(--font-geist-mono), monospace;
+  --text-transform: uppercase;
+  --letter-spacing: 0.1em;
+  --display-effects: block;
 }
 
 @media (prefers-color-scheme: dark) {

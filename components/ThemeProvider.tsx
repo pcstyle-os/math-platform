@@ -8,7 +8,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     if (savedTheme) {
       document.documentElement.setAttribute("data-theme", savedTheme);
     } else {
-      document.documentElement.setAttribute("data-theme", "minimalistic-warm");
+      document.documentElement.setAttribute("data-theme", "cybernetic-dark");
     }
   }, []);
 
