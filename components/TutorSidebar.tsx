@@ -64,7 +64,7 @@ export function TutorSidebar() {
     try {
       const response = await askQuestion({
         question: userMessage,
-        context: currentContext || "Witaj w aplikacji Math Platform.",
+        context: currentContext || "Witaj w aplikacji Neon Atlas AI.",
         history: messages.map((m) => ({
           role: m.role === "ai" ? "model" : "user",
           text: m.content,

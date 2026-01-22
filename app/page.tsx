@@ -39,13 +39,13 @@ export default function LandingPage() {
                 <>
                   GENERYCZNY_PLAN
                   <br />
-                  <span className="text-[var(--primary)]">NAUKI_MATMY</span>
+                  <span className="text-[var(--primary)]">NAUKI</span>
                 </>
               ) : (
                 <>
                   Zapanuj nad
                   <br />
-                  <span className="text-[var(--primary)] text-glow">Matematyką</span>
+                  <span className="text-[var(--primary)] text-glow">nauką</span>
                 </>
               )}
             </h1>
@@ -102,7 +102,7 @@ export default function LandingPage() {
               title: isCyber ? "AI_CORE_ANALYSIS" : "Głęboka Analiza",
               desc: isCyber
                 ? "Zaawansowane modele LLM procesują dane wejściowe."
-                : "Nasze algorytmy wyciągają najważniejsze wzory i twierdzenia z Twoich notatek.",
+                : "Nasze algorytmy wyciągają kluczowe pojęcia i fakty z Twoich notatek.",
             },
             {
               icon: Rocket,
@@ -134,7 +134,7 @@ export default function LandingPage() {
         </div>
       </section>
       <footer className="py-10 border-t border-[var(--border)] text-center text-[var(--text-muted)] text-sm font-mono">
-        &lt;!-- © 2026 MATHPREP_AI // pcstyle --&gt;
+        &lt;!-- © 2026 NEON_ATLAS_AI // pcstyle --&gt;
       </footer>
     </div>
   );
