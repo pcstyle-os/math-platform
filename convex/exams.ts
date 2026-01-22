@@ -115,6 +115,8 @@ export const getExam = query({
 export const createExam = mutation({
   args: {
     title: v.string(),
+    subject: v.string(),
+    subjectMode: v.union(v.literal("automatic"), v.literal("manual"), v.literal("other")),
     storageIds: v.array(v.id("_storage")),
     isSpeedrun: v.optional(v.boolean()),
     hoursAvailable: v.optional(v.number()),
@@ -127,6 +129,8 @@ export const createExam = mutation({
     const examId = await ctx.db.insert("exams", {
       userId: user.id,
       title: args.title,
+      subject: args.subject,
+      subjectMode: args.subjectMode,
       status: "generating",
       storageIds: args.storageIds,
       isSpeedrun: args.isSpeedrun,
@@ -198,6 +202,8 @@ export const generateExam = action({
   args: {
     examId: v.id("exams"),
     storageIds: v.array(v.id("_storage")),
+    subject: v.string(),
+    subjectMode: v.union(v.literal("automatic"), v.literal("manual"), v.literal("other")),
     isSpeedrun: v.optional(v.boolean()),
     hoursAvailable: v.optional(v.number()),
   },
@@ -225,6 +231,11 @@ export const generateExam = action({
 
       const ai = new GoogleGenAI({ apiKey });
 
+      const subjectContext =
+        args.subjectMode === "automatic"
+          ? "Automatycznie rozpoznaj przedmiot na podstawie przesłanych materiałów."
+          : `Przedmiot: ${args.subject}.`;
+
       // Build prompt with all PDFs
       const response = await ai.models.generateContent({
         model: "gemini-3-pro-preview",
@@ -234,7 +245,8 @@ export const generateExam = action({
             parts: [
               ...pdfParts,
               {
-                text: `Jesteś wybitnym profesorem matematyki i ekspertem od dydaktyki. Twoim celem jest stworzenie SZCZEGÓŁOWEGO, ANGARAŻUJĄCEGO i SKUTECZNEGO planu nauki na podstawie przesłanych materiałów (PDF).
+                text: `Jesteś wybitnym nauczycielem i ekspertem od dydaktyki. Twoim celem jest stworzenie SZCZEGÓŁOWEGO, ANGARAŻUJĄCEGO i SKUTECZNEGO planu nauki na podstawie przesłanych materiałów (PDF).
+${subjectContext}
 ${args.isSpeedrun
                     ? `
 🚨 TRYB ALARMOWY (SPEEDRUN): Użytkownik ma tylko ${args.hoursAvailable} godzin do egzaminu! 

@@ -37,12 +37,25 @@ export default function Dashboard() {
   } | null>(null);
   const { getLabel, isCyber } = useThemeLabels();
 
+  const migrateExams = useMutation(api.admin.migrateExams);
   const renameExam = useMutation(api.exams.renameExam);
   const deleteExam = useMutation(api.exams.deleteExam);
 
   useEffect(() => {
     syncStats().then(setStats);
   }, [syncStats]);
+
+  useEffect(() => {
+    if (exams && exams.length > 0) {
+      const needsMigration = exams.some(
+        (exam) => exam.subject === undefined || exam.subjectMode === undefined,
+      );
+      if (needsMigration) {
+        console.log("Legacy data detected. Triggering automatic migration...");
+        migrateExams();
+      }
+    }
+  }, [exams, migrateExams]);
 
   const [renamingId, setRenamingId] = useState<string | null>(null);
   const [renameTitle, setRenameTitle] = useState("");

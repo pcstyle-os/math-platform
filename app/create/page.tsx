@@ -22,11 +22,32 @@ export default function CreateExam() {
 
   const [files, setFiles] = useState<FileWithBuffer[]>([]);
   const [title, setTitle] = useState("");
+  const [subjectMode, setSubjectMode] = useState<"automatic" | "manual" | "other">("automatic");
+  const [subject, setSubject] = useState("");
+  const [subjectOther, setSubjectOther] = useState("");
   const [isSpeedrun, setIsSpeedrun] = useState(false);
   const [hoursAvailable, setHoursAvailable] = useState(4);
   const [isUploading, setIsUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const { getLabel, isCyber } = useThemeLabels();
+
+  const subjectOptions = [
+    { value: "automatic", label: isCyber ? "AUTO_DETECT" : "Automatyczny", mode: "automatic" },
+    { value: "math", label: "Matematyka", mode: "manual" },
+    { value: "physics", label: "Fizyka", mode: "manual" },
+    { value: "chemistry", label: "Chemia", mode: "manual" },
+    { value: "biology", label: "Biologia", mode: "manual" },
+    { value: "history", label: "Historia", mode: "manual" },
+    { value: "geography", label: "Geografia", mode: "manual" },
+    { value: "literature", label: "Język polski / Literatura", mode: "manual" },
+    { value: "cs", label: "Informatyka", mode: "manual" },
+    { value: "economics", label: "Ekonomia", mode: "manual" },
+    { value: "civics", label: "WOS / Edukacja obywatelska", mode: "manual" },
+    { value: "art", label: "Sztuka", mode: "manual" },
+    { value: "music", label: "Muzyka", mode: "manual" },
+    { value: "language", label: "Języki obce", mode: "manual" },
+    { value: "other", label: isCyber ? "OTHER_MODE" : "Inny", mode: "other" },
+  ] as const;
 
   const createExam = useMutation(api.exams.createExam);
   const storeFile = useAction(api.exams.storeFile);
@@ -66,6 +87,18 @@ export default function CreateExam() {
   const handleUpload = async () => {
     if (files.length === 0 || !title) return;
 
+    const resolvedSubject =
+      subjectMode === "automatic"
+        ? "automatic"
+        : subjectMode === "other"
+          ? subjectOther.trim()
+          : subject;
+
+    if (subjectMode === "other" && !resolvedSubject) {
+      setError("Podaj nazwę przedmiotu dla trybu Inny.");
+      return;
+    }
+
     setIsUploading(true);
     setError(null);
     console.log(`[Create] Rozpoczynanie przesyłania ${files.length} plików...`);
@@ -93,6 +126,8 @@ export default function CreateExam() {
       console.log("[Create] Pliki przesłane. Tworzenie projektu w bazie...");
       const examId = await createExam({
         title,
+        subject: resolvedSubject,
+        subjectMode,
         storageIds,
         isSpeedrun,
         hoursAvailable,
@@ -102,6 +137,8 @@ export default function CreateExam() {
       generateExamAction({
         examId,
         storageIds,
+        subject: resolvedSubject,
+        subjectMode,
         isSpeedrun,
         hoursAvailable,
       }).catch((e) => {
@@ -159,9 +196,68 @@ export default function CreateExam() {
               type="text"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              placeholder="np. Analiza Matematyczna - Kolokwium 1"
+              placeholder="np. Historia - Wojny napoleońskie"
               className={`w-full px-6 py-4 text-lg font-medium outline-none transition-all ${isCyber ? "" : "rounded-2xl bg-[var(--background)] border-[var(--border)] focus:ring-2 ring-[var(--primary)]/20"}`}
             />
+          </div>
+
+          <div>
+            <label
+              className={`block text-xs font-bold mb-3 uppercase tracking-widest ${isCyber ? "text-[var(--primary)]" : "text-[var(--text-muted)]"}`}
+            >
+              {isCyber ? "> subject_mode" : "Przedmiot"}
+            </label>
+            <div className="grid gap-4">
+              <select
+                value={
+                  subjectMode === "automatic"
+                    ? "automatic"
+                    : subjectMode === "other"
+                      ? "other"
+                      : subjectOptions.find((option) => option.label === subject)?.value || "math"
+                }
+                onChange={(e) => {
+                  const selected = subjectOptions.find((option) => option.value === e.target.value);
+                  if (!selected) return;
+                  if (selected.mode === "automatic") {
+                    setSubjectMode("automatic");
+                    setSubject("");
+                    setSubjectOther("");
+                  } else if (selected.mode === "other") {
+                    setSubjectMode("other");
+                    setSubject("");
+                    setSubjectOther("");
+                  } else {
+                    setSubjectMode("manual");
+                    setSubject(selected.label);
+                    setSubjectOther("");
+                  }
+                }}
+                className={`w-full px-6 py-4 text-lg font-medium outline-none transition-all ${isCyber ? "" : "rounded-2xl bg-[var(--background)] border-[var(--border)] focus:ring-2 ring-[var(--primary)]/20"}`}
+              >
+                {subjectOptions.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
+              {subjectMode === "other" && (
+                <input
+                  type="text"
+                  value={subjectOther}
+                  onChange={(e) => setSubjectOther(e.target.value)}
+                  placeholder="np. Psychologia, Filozofia, Prawo"
+                  className={`w-full px-6 py-4 text-lg font-medium outline-none transition-all ${isCyber ? "" : "rounded-2xl bg-[var(--background)] border-[var(--border)] focus:ring-2 ring-[var(--primary)]/20"}`}
+                />
+              )}
+              {subjectMode === "automatic" && (
+                <p className="text-xs text-[var(--text-muted)] font-medium">
+                  {isCyber
+                    ? "// AI rozpozna przedmiot po treści plików."
+                    : "AI automatycznie rozpozna przedmiot na podstawie przesłanych materiałów."}
+                </p>
+              )}
+            </div>
           </div>
 
           <div
@@ -315,7 +411,12 @@ export default function CreateExam() {
 
           <button
             onClick={handleUpload}
-            disabled={files.length === 0 || !title || isUploading}
+            disabled={
+              files.length === 0 ||
+              !title ||
+              isUploading ||
+              (subjectMode === "other" && !subjectOther.trim())
+            }
             className="btn-premium w-full py-5 text-xl group shadow-2xl"
           >
             {isUploading ? (
