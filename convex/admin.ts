@@ -48,3 +48,23 @@ export const makePremium = mutation({
     return { success: true, email: args.email };
   },
 });
+
+export const migrateExams = mutation({
+  args: {},
+  handler: async (ctx) => {
+    const exams = await ctx.db.query("exams").collect();
+    let migratedCount = 0;
+
+    for (const exam of exams) {
+      if (exam.subject === undefined || exam.subjectMode === undefined) {
+        await ctx.db.patch(exam._id, {
+          subject: exam.subject ?? "Analiza Matematyczna",
+          subjectMode: exam.subjectMode ?? "automatic",
+        });
+        migratedCount++;
+      }
+    }
+
+    return `Migrated ${migratedCount} out of ${exams.length} exams.`;
+  },
+});

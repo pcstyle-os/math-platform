@@ -59,10 +59,18 @@ export default function ExamStudyView() {
   const askQuestionValue = useAction(api.chat.askQuestion);
   const explainTheory = useAction(api.chat.explainTheory);
 
+  const migrateExams = useMutation(api.admin.migrateExams);
   const [activeTheoryIndex, setActiveTheoryIndex] = useState(0);
   const [explanation, setExplanation] = useState<string | null>(null);
   const [isExplaining, setIsExplaining] = useState(false);
   const [showExplanation, setShowExplanation] = useState(false);
+
+  useEffect(() => {
+    if (exam && (exam.subject === undefined || exam.subjectMode === undefined)) {
+      console.log("[ExamView] Legacy data detected. Triggering automatic migration...");
+      migrateExams();
+    }
+  }, [exam, migrateExams]);
 
   useEffect(() => {
     if (exam?.data) {

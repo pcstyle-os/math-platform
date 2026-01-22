@@ -6,8 +6,10 @@ export default defineSchema({
   exams: defineTable({
     userId: v.string(), // WorkOS User ID
     title: v.string(),
-    subject: v.string(),
-    subjectMode: v.union(v.literal("automatic"), v.literal("manual"), v.literal("other")),
+    subject: v.optional(v.string()),
+    subjectMode: v.optional(
+      v.union(v.literal("automatic"), v.literal("manual"), v.literal("other")),
+    ),
     status: v.union(v.literal("generating"), v.literal("ready"), v.literal("error")),
     storageIds: v.array(v.id("_storage")), // Multiple uploaded PDFs
     data: v.optional(
